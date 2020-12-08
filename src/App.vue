@@ -1,9 +1,9 @@
 <template>
   <div id="app">
     <div class="nav">
-      <img class="nav-image" alt="PDOK logo" src="./assets/pdok-logo.png" />
-        <router-link to="/home">Go to Foo</router-link>
-        <router-link to="/bar">Go to Bar</router-link>  
+      
+      <router-link to="/home"><img class="nav-image" alt="PDOK logo" src="./assets/pdok-logo.png" /></router-link>
+      <router-link to="/bar">Go to Bar</router-link>  
   </div>
 
     <router-view></router-view>
@@ -72,5 +72,10 @@ margin: 0px;
   margin:1em;
   height: 30px;
 }
-.search{margin-top:1em;}
+
+.nav a{
+  color:white;
+  margin: 0.2em;
+}
+
 </style>

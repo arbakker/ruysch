@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="search">
     <h2 v-if="!cswLoaded">Loading...</h2>
     <div v-if="cswLoaded">
       <input
@@ -105,4 +105,6 @@ input {
   border: #ddd solid 1px;
   line-height: 1.5;
 }
+
+.search{margin-top:1em;}
 </style>
