@@ -12,7 +12,9 @@ Vue.config.productionTip = false
 // 1. Define route components.
 // These can be imported from other files
 import Search from './components/Search.vue'
-const Bar = { template: '<div>bar</div>' }
+import WMSMap from './components/WMSMap.vue'
+
+
 
 // 2. Define some routes
 // Each route should map to a component. The "component" can
@@ -21,7 +23,9 @@ const Bar = { template: '<div>bar</div>' }
 // We'll talk about nested routes later.
 const routes = [
   { path: '/home', component: Search },
-  { path: '/bar', component: Bar }
+  { path: '/wms-service/:serviceId', component: WMSMap, name: 'wmsService', },
+  { path: '/', redirect: '/home' },
+  { path: '*', redirect: 'home'}
 ]
 
 // 3. Create the router instance and pass the `routes` option
@@ -30,7 +34,6 @@ const routes = [
 const router = new VueRouter({
   routes // short for `routes: routes`
 })
-
 
 new Vue({
   store,

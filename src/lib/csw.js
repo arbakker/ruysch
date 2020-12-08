@@ -33,6 +33,15 @@ var getCSWRecords = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
     return records
 }
 
+function getServiceUrl(xmlDoc){
+    let onlineResNode =  xmlDoc.querySelectorAll("connectPoint CI_OnlineResource linkage URL")
+
+    if (onlineResNode && onlineResNode.length > 0){
+        return onlineResNode[0].textContent
+    }
+    return ""
+}
+
 var getCSWRecord = async (cswEndpoint, mdIdentifier) => {
     let url = `${cswEndpoint}?service=CSW&request=GetRecordById&version=2.0.2&outputSchema=http://www.isotc211.org/2005/gmd&elementSetName=full&id=${mdIdentifier}#MD_DataIdentification`
     let res = await fetch(url)
@@ -40,12 +49,11 @@ var getCSWRecord = async (cswEndpoint, mdIdentifier) => {
     let data = await res.text()
     let parser = new DOMParser()
     let xmlDoc = parser.parseFromString(data, "text/xml")
-    let onlineResNode =  xmlDoc.querySelectorAll("connectPoint CI_OnlineResource linkage URL")
-
-    if (onlineResNode && onlineResNode.length > 0){
-        return onlineResNode[0].textContent
+    let serviceUrl = getServiceUrl(xmlDoc)
+    return {
+        id: mdIdentifier,
+        url: serviceUrl
     }
-    return ""
 }
 
 var getCSWRecordsWithUrl = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
@@ -60,6 +68,4 @@ var getCSWRecordsWithUrl = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
     return records
 }
 
-
-  
-export default getCSWRecordsWithUrl
+export default {getCSWRecord, getCSWRecordsWithUrl, getCSWRecords}

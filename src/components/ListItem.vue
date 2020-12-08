@@ -1,6 +1,6 @@
 <template>
   <li>
-    {{ item.title }}
+    <router-link :to="{ name: 'wmsService', params: { serviceId: item.id }}">{{ item.title }}</router-link>
   </li>
 </template>
 
@@ -10,6 +10,8 @@ name: 'ListItem',
   props: {
     item: { required: true, type: Object },
   },
+  mounted(){
+  }
 };
 </script>
 <style>

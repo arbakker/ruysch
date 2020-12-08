@@ -23,7 +23,7 @@
 import ListItem from "./ListItem.vue";
 import Fuse from "fuse.js";
 import { mapFields } from "vuex-map-fields";
-import getCSWRecordsWithUrl from "../lib/csw";
+import csw from "../lib/csw";
 
 export default {
   name: "Search",
@@ -55,12 +55,10 @@ export default {
     },
     search() {
       const searchResult = this.fuse.search(this.query, {});
-      console.log(searchResult);
 
       if (searchResult.length === 0) {
         this.displayItems = this.records;
       } else {
-        console.log(searchResult.map(({ item }) => item));
         this.displayItems = searchResult
           .map(({ item }) => item)
           .sort(this.compare);
@@ -74,10 +72,9 @@ export default {
         "type=%27service%27%20AND%20organisationName=%27Beheer%20PDOK%27%20AND%20protocol=%27OGC:WMS%27";
       let cswEndpoint =
         "https://ngr.acceptatie.nationaalgeoregister.nl/geonetwork/srv/dut/csw";
-      let recordsPromise = getCSWRecordsWithUrl(cswEndpoint, cqlQuery, 50);
+      let recordsPromise = csw.getCSWRecords(cswEndpoint, cqlQuery, 50);
       recordsPromise.then((result) => {
         result.sort(this.compare);
-        console.log(result);
         this.records = result;
         this.displayItems = result;
         const options = {
