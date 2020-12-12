@@ -1,7 +1,7 @@
 <template>
-  <li>
-    <router-link :to="{ name: item.serviceType, params: { serviceId: item.id }}">{{ item.title }}</router-link>
-  </li>
+  
+    <router-link tag="li" :to="{ name: item.serviceType, params: { serviceId: item.id }}">{{ item.title }}</router-link>
+  
 </template>
 
 <script>

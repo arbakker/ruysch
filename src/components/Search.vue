@@ -8,7 +8,7 @@
         v-on:change="search"
         :placeholder="'search in ' + records.length +' services from ' + serviceOwner"
       />
-      <p>{{ displayItems.length }} results in {{ cswBaseUrlHost }}</p>
+      <p id="resultSummrary" >{{ displayItems.length }} results in {{ cswBaseUrlHost }}</p>
       <div id="results">
         <ul>
           <template v-for="item in displayItems">
@@ -121,19 +121,23 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-*{
-  text-align: center;
-}
+
 input {
-  width: 50%;
-  text-align: center;
+  width: 20em;  
   border: #ddd solid 1px;
   line-height: 1.5;
   margin-top:1em;
+  padding: 0.4em;
 }
-
+ul{
+  padding:unset;
+}
 .search{
   height: 93vh;
   overflow-y:auto;
+  margin-left: 3em;
+  }
+  #resultSummrary{
+    font-style: italic;
   }
 </style>

@@ -73,6 +73,8 @@ var getCSWRecord = async (cswEndpoint, mdIdentifier) => {
     let parser = new DOMParser()
     let xmlDoc = parser.parseFromString(data, "text/xml")
     let serviceUrl = getServiceUrl(xmlDoc)
+    // try with https immediately, since http wont work
+    serviceUrl = serviceUrl.replace('http', 'https')
     let protocol = getServiceProtocol(xmlDoc)
     return {
         id: mdIdentifier,
