@@ -1,6 +1,6 @@
 <template>
   <li>
-    <router-link :to="{ name: 'wmsService', params: { serviceId: item.id }}">{{ item.title }}</router-link>
+    <router-link :to="{ name: item.serviceType, params: { serviceId: item.id }}">{{ item.title }}</router-link>
   </li>
 </template>
 
@@ -10,11 +10,13 @@ name: 'ListItem',
   props: {
     item: { required: true, type: Object },
   },
+  computed:{
+  },
   mounted(){
   }
 };
 </script>
-<style>
+<style scoped>
 li{
     display: block ;
     padding: 8px 16px;

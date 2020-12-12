@@ -8,6 +8,8 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
+        cswBaseUrl: "https://nationaalgeoregister.nl/geonetwork/srv/dut/csw",
+        serviceOwner: "Beheer PDOK",
         records: [],
         displayItems: [],
         cswLoaded: false,

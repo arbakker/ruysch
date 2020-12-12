@@ -6,8 +6,9 @@
         type="text"
         v-model="query"
         v-on:change="search"
-        placeholder="zoek naar PDOK services"
+        :placeholder="'search in ' + records.length +' services from ' + serviceOwner"
       />
+      <p>{{ displayItems.length }} results in {{ cswBaseUrlHost }}</p>
       <div>
         <ul>
           <template v-for="item in displayItems">
@@ -41,7 +42,12 @@ export default {
       displayItems: "displayItems",
       cswLoaded: "cswLoaded",
       fuse: "fuse",
+      cswBaseUrl: "cswBaseUrl", 
+      serviceOwner: "serviceOwner"
     }),
+    cswBaseUrlHost(){
+      return new URL(this.cswBaseUrl).hostname
+    },
   },
   methods: {
     compare(a, b) {
@@ -53,27 +59,46 @@ export default {
       }
       return 0;
     },
+    getCQLQuery(serviceOwner, protocol){
+       return `type=%27service%27%20AND%20organisationName=%27${serviceOwner.replace(" ", "%20")}%27%20AND%20protocol=%27${protocol.replace(" ", "%20")}%27`;
+    },
     search() {
-      const searchResult = this.fuse.search(this.query, {});
-
-      if (searchResult.length === 0) {
+      if (this.query === ''){
         this.displayItems = this.records;
-      } else {
-        this.displayItems = searchResult
-          .map(({ item }) => item)
-          .sort(this.compare);
+        return;
       }
+      const searchResult = this.fuse.search(this.query, {});
+      this.displayItems = searchResult
+        .map(({ item }) => item)
+        .sort(this.compare);
+    
     },
   },
 
   mounted() {
     if (!this.cswLoaded) {
-      let cqlQuery =
-        "type=%27service%27%20AND%20organisationName=%27Beheer%20PDOK%27%20AND%20protocol=%27OGC:WMS%27";
-      let cswEndpoint =
-        "https://ngr.acceptatie.nationaalgeoregister.nl/geonetwork/srv/dut/csw";
-      let recordsPromise = csw.getCSWRecords(cswEndpoint, cqlQuery, 50);
-      recordsPromise.then((result) => {
+      let cswBaseUrlQueryParam = this.$route.query.cswBaseUrl
+      if (cswBaseUrlQueryParam){
+        this.cswBaseUrl = cswBaseUrlQueryParam
+      }
+      
+      let queries = []
+      queries.push(this.getCQLQuery(this.serviceOwner, 'OGC:WMS'))
+      queries.push(this.getCQLQuery(this.serviceOwner, 'OGC:WFS'))
+      queries.push(this.getCQLQuery(this.serviceOwner, 'INSPIRE Atom'))
+      
+      let promises = []
+      queries.forEach((query)=>{
+        promises.push(csw.getCSWRecords(this.cswBaseUrl, query, 30))   
+      })
+      
+
+      Promise.all(promises).then((values) => {
+        let newValues = []
+        newValues.push(values[0].map(obj=> ({ ...obj, serviceType: 'OGC:WMS' })))
+        newValues.push(values[1].map(obj=> ({ ...obj, serviceType: 'OGC:WFS' })))
+        newValues.push(values[2].map(obj=> ({ ...obj, serviceType: 'INSPIRE Atom' })))
+        let result = [].concat.apply([], newValues);
         result.sort(this.compare);
         this.records = result;
         this.displayItems = result;
@@ -84,11 +109,11 @@ export default {
           distance: 100,
           minMatchCharLength: 3,
           ignoreLocation: true,
-          keys: ["title"],
+          keys: ["title", "abstract", "keywords"],
         };
         this.fuse =  new Fuse(this.records, options);
         this.cswLoaded = true;
-      });
+      })
     }
   },
 };
@@ -96,6 +121,9 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+*{
+  text-align: center;
+}
 input {
   width: 50%;
   text-align: center;

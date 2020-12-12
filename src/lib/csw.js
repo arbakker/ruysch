@@ -1,5 +1,8 @@
 var getCSWRecords = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
     let pageSize = 50;
+    if (maxRecords < 50 && maxRecords > 0){
+        pageSize =  maxRecords
+    }
     let startPosition = 1;
     let records = []
     // eslint-disable-next-line no-constant-condition
@@ -16,9 +19,19 @@ var getCSWRecords = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
             let recordNode = recordsNodes[i];
             let mdId = recordNode.querySelectorAll("identifier")[0].textContent
             let mdTitle = recordNode.querySelectorAll("title")[0].textContent
+            let abstract = recordNode.querySelectorAll("abstract")[0].textContent
+            // let modified = recordNode.querySelectorAll("modified")[0].textContent
+            let kws = []    
+
+            recordNode.querySelectorAll("subject").forEach(function(item){
+                kws.push(item.textContent)
+            })
             let record = {}
             record.title = mdTitle
             record.id = mdId
+            record.abstract = abstract
+            record.keywords = kws
+            // record.modified = modified
             records.push(record)
         }
         let searchResults = xmlDoc.querySelectorAll("SearchResults")[0]
@@ -35,9 +48,19 @@ var getCSWRecords = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
 
 function getServiceUrl(xmlDoc){
     let onlineResNode =  xmlDoc.querySelectorAll("connectPoint CI_OnlineResource linkage URL")
-
     if (onlineResNode && onlineResNode.length > 0){
         return onlineResNode[0].textContent
+    }
+    return ""
+}
+
+function getServiceProtocol(xmlDoc){
+    let protNode =  xmlDoc.querySelectorAll("onLine CI_OnlineResource protocol Anchor")
+    if (protNode && protNode.length === 0){
+        protNode =  xmlDoc.querySelectorAll("onLine CI_OnlineResource protocol CharacterString")
+    }
+    if (protNode && protNode.length > 0){
+        return protNode[0].textContent
     }
     return ""
 }
@@ -50,9 +73,11 @@ var getCSWRecord = async (cswEndpoint, mdIdentifier) => {
     let parser = new DOMParser()
     let xmlDoc = parser.parseFromString(data, "text/xml")
     let serviceUrl = getServiceUrl(xmlDoc)
+    let protocol = getServiceProtocol(xmlDoc)
     return {
         id: mdIdentifier,
-        url: serviceUrl
+        url: serviceUrl,
+        protocol: protocol
     }
 }
 

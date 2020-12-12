@@ -2,8 +2,11 @@ import Vue from 'vue'
 import App from './App.vue'
 import VueRouter from 'vue-router'
 import store from './store'
+import Clipboard from 'v-clipboard'
+ 
 
 Vue.use(VueRouter)
+Vue.use(Clipboard)
 Vue.config.productionTip = false
 
 // 0. If using a module system (e.g. via vue-cli), import Vue and VueRouter
@@ -13,6 +16,8 @@ Vue.config.productionTip = false
 // These can be imported from other files
 import Search from './components/Search.vue'
 import WMSMap from './components/WMSMap.vue'
+import WFSMap from './components/WFSMap.vue'
+import Atom from './components/Atom.vue'
 
 
 
@@ -23,7 +28,9 @@ import WMSMap from './components/WMSMap.vue'
 // We'll talk about nested routes later.
 const routes = [
   { path: '/home', component: Search },
-  { path: '/wms-service/:serviceId', component: WMSMap, name: 'wmsService', },
+  { path: '/wms-service/:serviceId', component: WMSMap, name: 'OGC:WMS', },
+  { path: '/wfs-service/:serviceId', component: WFSMap, name: 'OGC:WFS', },
+  { path: '/atom-service/:serviceId', component: Atom, name: 'INSPIRE Atom', },
   { path: '/', redirect: '/home' },
   { path: '*', redirect: 'home'}
 ]
