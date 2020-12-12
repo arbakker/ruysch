@@ -1,4 +1,7 @@
 module.exports = {
+  publicPath: process.env.NODE_ENV === 'production'
+  ? '/pdok-services/'
+  : '/',
     configureWebpack: {
         // It will be merged into the final Webpack config
         module : {
