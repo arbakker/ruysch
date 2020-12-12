@@ -1,6 +1,6 @@
 
 function getServiceInfoWMS(obj){
-    return {
+    let val = {
         title: obj.Title,
         abstract: obj.Abstract,
         keywords: obj.KeywordList,
@@ -9,6 +9,7 @@ function getServiceInfoWMS(obj){
         contactName: obj.ContactInformation.ContactPersonPrimary.ContactPerson,
         contactEmail: obj.ContactInformation.ContactElectronicMailAddress
     }
+    return val
 }
 
 function getServiceInfoWFS(obj){

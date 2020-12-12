@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    
     <div class="nav">
       <router-link to="/home"
         ><img class="nav-image" alt="PDOK logo" src="./assets/pdok-logo.png"
@@ -95,7 +96,6 @@ background-color:#999999;
   max-width: 95%;
   /* margin-bottom: 1em; */
   border: lightgrey solid 1px;
-  border-radius: 2px;
   padding: 0.4em;
 }
 .mapControl div {
@@ -115,4 +115,33 @@ label {
 h3{
   margin:unset;
   margin-bottom: 0.5em;}
+
+  dt {
+  font-weight: bold;
+  font-style: italic;
+}
+dd {
+  margin: 0;
+  margin-left: 0.2em;
+  padding: 0 0 0.5em 0;
+}
+dl{
+    margin:unset;
+}
+ .styled-table  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  .styled-table  {
+    table-layout: auto;
+    border-collapse: separate;
+    white-space: nowrap;
+    margin: 1em;
+    border-spacing: 0.2em;
+  }
+  .styled-table td{
+    padding: 0.3em;
+  }
+  .styled-table tr td:nth-child(1){
+    font-weight: 600;
+  }
 </style>

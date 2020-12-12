@@ -24,15 +24,5 @@ export default {
 };
 </script>
 <style scoped>
-dt {
-  font-weight: bold;
-  font-style: italic;
-}
-dd {
-  margin: 0;
-  padding: 0 0 0.5em 0;
-}
-dl{
-    margin:unset;
-}
+
 </style>

@@ -9,7 +9,7 @@
         :placeholder="'search in ' + records.length +' services from ' + serviceOwner"
       />
       <p>{{ displayItems.length }} results in {{ cswBaseUrlHost }}</p>
-      <div>
+      <div id="results">
         <ul>
           <template v-for="item in displayItems">
             <list-item :item="item" :key="item.id"></list-item>
@@ -85,11 +85,11 @@ export default {
       let queries = []
       queries.push(this.getCQLQuery(this.serviceOwner, 'OGC:WMS'))
       queries.push(this.getCQLQuery(this.serviceOwner, 'OGC:WFS'))
-      queries.push(this.getCQLQuery(this.serviceOwner, 'INSPIRE Atom'))
+      // queries.push(this.getCQLQuery(this.serviceOwner, 'INSPIRE Atom'))
       
       let promises = []
       queries.forEach((query)=>{
-        promises.push(csw.getCSWRecords(this.cswBaseUrl, query, 30))   
+        promises.push(csw.getCSWRecords(this.cswBaseUrl, query))   
       })
       
 
@@ -97,7 +97,7 @@ export default {
         let newValues = []
         newValues.push(values[0].map(obj=> ({ ...obj, serviceType: 'OGC:WMS' })))
         newValues.push(values[1].map(obj=> ({ ...obj, serviceType: 'OGC:WFS' })))
-        newValues.push(values[2].map(obj=> ({ ...obj, serviceType: 'INSPIRE Atom' })))
+        // newValues.push(values[2].map(obj=> ({ ...obj, serviceType: 'INSPIRE Atom' })))
         let result = [].concat.apply([], newValues);
         result.sort(this.compare);
         this.records = result;
@@ -129,7 +129,11 @@ input {
   text-align: center;
   border: #ddd solid 1px;
   line-height: 1.5;
+  margin-top:1em;
 }
 
-.search{margin-top:1em;}
+.search{
+  height: 93vh;
+  overflow-y:auto;
+  }
 </style>

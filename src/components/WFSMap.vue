@@ -36,8 +36,8 @@
         <div id="meta" v-if="cswLoaded"></div>
       </div>
       <div id="mapControls">
+        <div  class="mapControl">
         <h3
-          class="mapControl"
           v-if="
             serviceObject &&
             serviceObject.title
@@ -45,6 +45,11 @@
         >
           {{ serviceObject.title }}
         </h3>
+         <dl>
+          <dt>service type</dt>
+          <dd>OGC:WFS</dd>
+         </dl>
+        </div>
         <div class="mapControl">
           <h3></h3>
           <div>
@@ -96,6 +101,7 @@ import GeoJSON from "ol/format/GeoJSON";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import Overlay from "ol/Overlay";
+import {FullScreen, defaults as defaultControls} from 'ol/control';
 import "ol/ol.css";
 
 // fa icons
@@ -225,6 +231,7 @@ export default {
     this.olMap = new Map({
       target: this.$refs["map-root"],
       overlays: [this.overlay],
+      controls: defaultControls().extend([new FullScreen()]),
       layers: [
         new TileLayer({
           source: new OSM(), // tiles are served by OpenStreetMap
@@ -236,7 +243,8 @@ export default {
         constrainResolution: true,
       }),
     });
-    this.olMap.on("singleclick", (evt) => {
+    this.olMap.on("click", (evt) => {
+      console.log("click")
       const coordinate = evt.coordinate; // get coordinates
       if (this.currentCoordinate) {
         this.closePopup();

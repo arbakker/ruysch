@@ -32,7 +32,19 @@
       </div>
       <div id="mapControls">
         <div class="mapControl">
-          <h3>{{ serviceObject.title }}</h3>
+           
+        <h3
+          v-if="
+            serviceObject &&
+            serviceObject.title
+          "
+        >
+          {{ serviceObject.title }}
+        </h3>
+         <dl>
+          <dt>service type</dt>
+          <dd>OGC:WMS</dd>
+         </dl>
         </div>
         <div class="mapControl">
           <div>
@@ -99,6 +111,7 @@ import ImageWMS from "ol/source/ImageWMS";
 import OSM from "ol/source/OSM";
 import WMSCapabilities from "ol/format/WMSCapabilities";
 import { get as getProjection } from "ol/proj";
+import {FullScreen, defaults as defaultControls} from 'ol/control';
 import "ol/ol.css";
 
 // fa
@@ -207,15 +220,13 @@ export default {
     });
 
     this.olMap = new Map({
-      // the map will be created using the 'map-root' ref
+      controls: defaultControls().extend([new FullScreen()]),
       target: this.$refs["map-root"],
       layers: [
-        // adding a background tiled layer
         new TileLayer({
-          source: new OSM(), // tiles are served by OpenStreetMap
+          source: new OSM(),
         }),
       ],
-      // the map view will initially show the whole world
       view: new View({
         zoom: 7,
         center: [681820.9487, 6832242.7535],
