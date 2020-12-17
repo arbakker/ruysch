@@ -139,6 +139,8 @@ var OWS_1_1_0 = require("ogc-schemas").OWS_1_1_0;
 var Filter_2_0 = require("ogc-schemas").Filter_2_0;
 var XLink_1_0 = require("w3c-schemas").XLink_1_0;
 
+
+
 export default {
   name: "WFSMap",
   components: {

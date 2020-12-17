@@ -17,6 +17,7 @@
     "ogc-schemas": "^2.6.1",
     "ol": "^6.4.3",
     "prismjs": "^1.22.0",
+    "proj4": "^2.6.3",
     "v-clipboard": "^2.2.3",
     "vue": "^2.6.11",
     "vue-code-highlight": "^0.7.6",

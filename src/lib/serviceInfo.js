@@ -12,6 +12,21 @@ function getServiceInfoWMS(obj){
     return val
 }
 
+
+function getServiceInfoWMTS(obj){
+    let val = {
+        title: obj.value.serviceIdentification.title[0].value,
+        abstract: '',
+        keywords: '',
+        fees: '',
+        contactOrganization: '',
+        contactName: '',
+        contactEmail: ''
+    }
+    return val
+}
+
+
 function getServiceInfoWFS(obj){
     let val = {
         title: obj.serviceIdentification.title[0].value,
@@ -26,4 +41,4 @@ function getServiceInfoWFS(obj){
     return val
 }
 
-export default {getServiceInfoWMS, getServiceInfoWFS}
+export default {getServiceInfoWMS, getServiceInfoWFS, getServiceInfoWMTS}

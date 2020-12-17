@@ -16,6 +16,7 @@ Vue.config.productionTip = false
 // These can be imported from other files
 import Search from './components/Search.vue'
 import WMSMap from './components/WMSMap.vue'
+import WMTSMap from './components/WMTSMap.vue'
 import WFSMap from './components/WFSMap.vue'
 import Atom from './components/Atom.vue'
 
@@ -30,6 +31,8 @@ const routes = [
   { path: '/home', component: Search },
   { path: '/wms-service/:serviceId', component: WMSMap, name: 'OGC:WMS', },
   { path: '/wfs-service/:serviceId', component: WFSMap, name: 'OGC:WFS', },
+  { path: '/wmts-service/:serviceId', component: WMTSMap, name: 'OGC:WMTS', },
+
   { path: '/atom-service/:serviceId', component: Atom, name: 'INSPIRE Atom', },
   { path: '/', redirect: '/home' },
   { path: '*', redirect: 'home'}

@@ -137,7 +137,7 @@ import LayerInfo from "./LayerInfo.vue";
 import ServiceInfo from "./ServiceInfo.vue";
 
 export default {
-  name: "WMSMap",
+  name: "WMTSMap",
   components: {
     Prism,
     FontAwesomeIcon,
