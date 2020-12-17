@@ -35,6 +35,9 @@ export default {
 .nav{
   background-color: #373D62;
   height: 7vh;
+  display: flex;
+  /* justify-content: center; */
+  align-items: center;
 }
 body{
 padding: 0px;
@@ -42,13 +45,13 @@ margin: 0px;
 }
 .nav-image{
   margin:1em;
-  height: 30px;
+  height: 20px;
+  width: 52px;
 }
 
 .nav a{
   color:white;
   margin: 0.2em;
-  
 }
 
 button{

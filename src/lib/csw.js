@@ -1,19 +1,41 @@
-var getCSWRecords = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
+var getRequests = async (cswEndpoint, cqlQuery, maxRecords = 0)=>{
+    let url = `${cswEndpoint}?request=GetRecords&Service=CSW&Version=2.0.2&typeNames=gmd:MD_Metadata&resultType=hits&constraint=${cqlQuery}&constraintLanguage=CQL_TEXT&constraint_language_version=1.1.0`
+    let res = await fetch(url)
+    if(!res.ok) return
+    let data = await res.text()
+    let parser = new DOMParser()
+    let xmlDoc = parser.parseFromString(data, "text/xml")
+    let recordsNodes =  xmlDoc.querySelectorAll("SearchResults")
+    let totalNumberRecords = parseInt(recordsNodes[0].getAttribute('numberOfRecordsMatched'))
     let pageSize = 50;
     if (maxRecords < 50 && maxRecords > 0){
         pageSize =  maxRecords
     }
     let startPosition = 1;
-    let records = []
+    let promises = []
     // eslint-disable-next-line no-constant-condition
     while (true){
         let url = `${cswEndpoint}?request=GetRecords&Service=CSW&Version=2.0.2&typeNames=gmd:MD_Metadata&resultType=results&constraint=${cqlQuery}&constraintLanguage=CQL_TEXT&constraint_language_version=1.1.0&startPosition=${startPosition}&maxRecords=${pageSize}`
-        let nextRecord = 0
-        let res = await fetch(url)
-        if(!res.ok) break
-        let data = await res.text()
+        let prom = fetch(url)
+        promises.push(prom)
+        startPosition+= pageSize
+        if (startPosition > totalNumberRecords) break
+    }
+    return promises
+}
+
+var getCSWRecords = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
+    let records = [];
+    let promises = getRequests(cswEndpoint, cqlQuery, maxRecords);
+    const responses = await promises;
+    const responseBodies = await Promise.all(responses).then((bodies) => {
+        return Promise.all(bodies.map((body) => {return body.text()})).then((data)=>{
+           return data
+        }) 
+    })
+    responseBodies.forEach((body)=>{
         let parser = new DOMParser()
-        let xmlDoc = parser.parseFromString(data, "text/xml")
+        let xmlDoc = parser.parseFromString(body, "text/xml")
         let recordsNodes =  xmlDoc.querySelectorAll("SummaryRecord")
         for (let i = 0; i < recordsNodes.length; ++i) {
             let recordNode = recordsNodes[i];
@@ -22,7 +44,7 @@ var getCSWRecords = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
             let abstract = recordNode.querySelectorAll("abstract")[0].textContent
             // let modified = recordNode.querySelectorAll("modified")[0].textContent
             let kws = []    
-
+    
             recordNode.querySelectorAll("subject").forEach(function(item){
                 kws.push(item.textContent)
             })
@@ -34,17 +56,10 @@ var getCSWRecords = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
             // record.modified = modified
             records.push(record)
         }
-        let searchResults = xmlDoc.querySelectorAll("SearchResults")[0]
-        nextRecord = searchResults.getAttribute("nextRecord")
-        if (nextRecord == 0){
-            break
-        }else if (maxRecords > 0 && nextRecord >= maxRecords){
-            break
-        }
-        startPosition+=pageSize
-    }
-    return records
+    })
+    return records;
 }
+
 
 function getServiceUrl(xmlDoc){
     let onlineResNode =  xmlDoc.querySelectorAll("connectPoint CI_OnlineResource linkage URL")
@@ -95,4 +110,4 @@ var getCSWRecordsWithUrl = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
     return records
 }
 
-export default {getCSWRecord, getCSWRecordsWithUrl, getCSWRecords}
+export default {getCSWRecord, getCSWRecordsWithUrl, getCSWRecords, getRequests}

@@ -1,12 +1,15 @@
 <template>
   <div class="search">
-    <h2 v-if="!cswLoaded">Loading...</h2>
+     <div id="loader" v-if="!cswLoaded">
+          <div class="loader"></div>
+          <p>Loading records from {{ cswBaseUrlHost }}</p>
+      </div>
     <div v-if="cswLoaded">
       <input
         type="text"
         v-model="query"
         v-on:change="search"
-        :placeholder="'search in ' + records.length +' services from ' + serviceOwner"
+        :placeholder="'search in ' + records.length + ' services from ' + serviceOwner"
       />
       <p id="resultSummrary" >{{ displayItems.length }} results in {{ cswBaseUrlHost }}</p>
       <div id="results">
@@ -33,6 +36,7 @@ export default {
   },
   data: () => ({
     query: "",
+    serviceTypes: ""
   }),
   props: {
   },
@@ -83,21 +87,23 @@ export default {
       }
       
       let queries = []
-      queries.push(this.getCQLQuery(this.serviceOwner, 'OGC:WMS'))
-      queries.push(this.getCQLQuery(this.serviceOwner, 'OGC:WFS'))
-      // queries.push(this.getCQLQuery(this.serviceOwner, 'INSPIRE Atom'))
+      const serviceTypes = ['OGC:WMS', 'OGC:WFS','INSPIRE Atom']
+      this.serviceTypes = serviceTypes.join(', ')
+      queries.push(this.getCQLQuery(this.serviceOwner, serviceTypes[0]))
+      queries.push(this.getCQLQuery(this.serviceOwner, serviceTypes[1]))
+      queries.push(this.getCQLQuery(this.serviceOwner, serviceTypes[2]))
       
       let promises = []
       queries.forEach((query)=>{
-        promises.push(csw.getCSWRecords(this.cswBaseUrl, query))   
+        promises.push(csw.getCSWRecords(this.cswBaseUrl, query,))   
       })
       
 
       Promise.all(promises).then((values) => {
         let newValues = []
-        newValues.push(values[0].map(obj=> ({ ...obj, serviceType: 'OGC:WMS' })))
-        newValues.push(values[1].map(obj=> ({ ...obj, serviceType: 'OGC:WFS' })))
-        // newValues.push(values[2].map(obj=> ({ ...obj, serviceType: 'INSPIRE Atom' })))
+        newValues.push(values[0].map(obj=> ({ ...obj, serviceType: serviceTypes[0] })))
+        newValues.push(values[1].map(obj=> ({ ...obj, serviceType: serviceTypes[1] })))
+        newValues.push(values[2].map(obj=> ({ ...obj, serviceType: serviceTypes[2] })))
         let result = [].concat.apply([], newValues);
         result.sort(this.compare);
         this.records = result;
@@ -140,4 +146,23 @@ ul{
   #resultSummrary{
     font-style: italic;
   }
+
+.loader {
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #373D62; /* Blue */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 2s linear infinite;
+  }
+  
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+}
+#loader{
+  margin:2em;
+}
+
+
 </style>

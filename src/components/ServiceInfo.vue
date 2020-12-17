@@ -67,9 +67,7 @@ export default {
     },
   },
   mounted() {
-    console.log(this.serviceObject)
-    console.log(this.record)
-
+    
   },
 };
 </script>

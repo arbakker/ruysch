@@ -244,7 +244,6 @@ export default {
       }),
     });
     this.olMap.on("click", (evt) => {
-      console.log("click")
       const coordinate = evt.coordinate; // get coordinates
       if (this.currentCoordinate) {
         this.closePopup();
