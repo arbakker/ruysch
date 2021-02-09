@@ -2,6 +2,8 @@
 
 # pdok-services
 
+Web app to search for PDOK geo-webservices in nationaalgeoregister.nl and display them on the map.
+
 ## Project setup
 ```
 npm install
