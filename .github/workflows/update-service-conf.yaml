@@ -1,4 +1,4 @@
-name: Update service config every day
+name: Update Service Config
 on:
   schedule:    
   - cron: '*/1 * * * *'
@@ -6,26 +6,35 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout before updating config 🛎️
+      - name: Checkout 🛎️
         uses: actions/checkout@v2
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v2
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v2
         with:
           node-version: '14.x'
-      - run: npm install
+
+      - name: NPM Install
+        run: npm install
         working-directory: ./update-service-conf
-      - run: npm run-script run
+      
+      - name: NPM Run Script
+        run: npm run-script run
         working-directory: ./update-service-conf
-      - name: Check if there are changes
+      
+      - name: Check For Changes
         id: changes
         uses: UnicornGlobal/has-changes-action@v1.0.11
+      
       - name: Commit files
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git commit -m "update service config $(date +%F)" -a
         if: steps.changes.outputs.changed == 1
+      
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
