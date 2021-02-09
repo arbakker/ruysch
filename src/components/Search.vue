@@ -121,7 +121,7 @@ export default {
           distance: 100,
           minMatchCharLength: 3,
           ignoreLocation: true,
-          keys: ["title", "abstract", "keywords"],
+          keys: ["title", "abstract", "keywords", "id"],
         };
         this.fuse = new Fuse(this.records, options);
         this.cswLoaded = true;
