@@ -3,7 +3,7 @@ on:
   schedule:    
   - cron: '*/1 * * * *'
 jobs:
-  build-and-deploy:
+  update-service-config:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
