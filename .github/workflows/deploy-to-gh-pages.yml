@@ -18,26 +18,33 @@ jobs:
         working-directory: ./update-service-conf
       - run: npm run-script run
         working-directory: ./update-service-conf
+      - name: Check if there are changes
+        id: changes
+        uses: UnicornGlobal/has-changes-action@v1.0.11
       - name: Commit files
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git commit -m "Add changes" -a
+        if: steps.changes.outputs.changed == 1
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
-    
+        if: steps.changes.outputs.changed == 1
+        
       - name: Checkout after updating config 🛎️
         uses: actions/checkout@v2
         with:
           persist-credentials: false
+        if: steps.changes.outputs.changed == 1  
 
       - name: Install and Build 🔧
         run: |
           npm install
           npm run-script build
+        if: steps.changes.outputs.changed == 1
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@releases/v3
@@ -45,3 +52,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages
           FOLDER: dist
+        if: steps.changes.outputs.changed == 1
