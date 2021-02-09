@@ -1,7 +1,7 @@
 name: Update Service Config
 on:
   schedule:    
-  - cron: '*/1 * * * *'
+  - cron: '0 0 * * *'
 jobs:
   update-service-config:
     runs-on: ubuntu-latest
