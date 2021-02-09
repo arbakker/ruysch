@@ -1,7 +1,7 @@
 name: Update service config every day
 on:
   schedule:    
-  - cron: "*/5 * * * *"
+  - cron: '*/1 * * * *'
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
