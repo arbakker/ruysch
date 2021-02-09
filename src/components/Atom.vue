@@ -43,7 +43,7 @@ export default {
 
       let promises = [];
       promises.push(fetch(url));
-      promises.push(fetch("/style.xslt"));
+      promises.push(fetch("./style.xslt"));
 
       Promise.all(promises).then((values) => {
         Promise.all(
