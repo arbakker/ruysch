@@ -1,3 +1,5 @@
+![Build and Deploy](https://github.com/arbakker/pdok-services/workflows/Build%20and%20Deploy/badge.svg)
+
 # pdok-services
 
 ## Project setup
