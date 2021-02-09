@@ -32,6 +32,9 @@ import ListItem from "./ListItem.vue";
 import Fuse from "fuse.js";
 import { mapFields } from "vuex-map-fields";
 import csw from "../lib/csw";
+import pdokServices from "../assets/pdok-services.json";
+
+import { serviceTypes, cachedUrl } from '../config.js'
 
 export default {
   name: "Search",
@@ -82,6 +85,22 @@ export default {
         .map(({ item }) => item)
         .sort(this.compare);
     },
+    init(result) {
+      this.records = result;
+      this.displayItems = result;
+      const options = {
+        shouldSort: true,
+        threshold: 0.3,
+        location: 0,
+        distance: 100,
+        minMatchCharLength: 3,
+        ignoreLocation: true,
+        keys: ["title", "abstract", "keywords", "id"],
+      };
+      this.fuse = new Fuse(this.records, options);
+      this.cswLoaded = true;
+
+    },
   },
 
   mounted() {
@@ -92,40 +111,32 @@ export default {
       }
 
       let queries = [];
-      const serviceTypes = ["OGC:WMS", "OGC:WFS", "INSPIRE Atom", "OGC:WMTS"];
       this.serviceTypes = serviceTypes.join(", ");
-      for (let i = 0; i < serviceTypes.length; i++) {
-        queries.push(this.getCQLQuery(this.serviceOwner, serviceTypes[i]));
-      }
-      let promises = [];
-      queries.forEach((query) => {
-        promises.push(csw.getCSWRecords(this.cswBaseUrl, query));
-      });
 
-      Promise.all(promises).then((values) => {
-        let newValues = [];
-        for (let i = 0; i < values.length; i++) {
-          newValues.push(
-            values[i].map((obj) => ({ ...obj, serviceType: serviceTypes[i] }))
-          );
+      if (cachedUrl === this.cswBaseUrl) {
+        this.init(pdokServices);
+      } else {
+        for (let i = 0; i < serviceTypes.length; i++) {
+          queries.push(this.getCQLQuery(this.serviceOwner, serviceTypes[i]));
         }
+        let promises = [];
+        queries.forEach((query) => {
+          promises.push(csw.getCSWRecords(this.cswBaseUrl, query));
+        });
 
-        let result = [].concat.apply([], newValues);
-        result.sort(this.compare);
-        this.records = result;
-        this.displayItems = result;
-        const options = {
-          shouldSort: true,
-          threshold: 0.3,
-          location: 0,
-          distance: 100,
-          minMatchCharLength: 3,
-          ignoreLocation: true,
-          keys: ["title", "abstract", "keywords", "id"],
-        };
-        this.fuse = new Fuse(this.records, options);
-        this.cswLoaded = true;
-      });
+        Promise.all(promises).then((values) => {
+          let newValues = [];
+          for (let i = 0; i < values.length; i++) {
+            newValues.push(
+              values[i].map((obj) => ({ ...obj, serviceType: serviceTypes[i] }))
+            );
+          }
+
+          let result = [].concat.apply([], newValues);
+          result.sort(this.compare);
+          this.init(result)
+        });
+      }
     }
   },
 };
