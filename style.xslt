@@ -105,7 +105,7 @@
             </td>
           </tr>
         </table>
-        <div id="xml-wrapper" style="display:none;">
+        <div id="xml-wrapper"  style="display:none;">
           <pre>
             <code class="language-markup" id="atom-xml"></code>
           </pre>
@@ -168,7 +168,9 @@
         <xsl:choose>
           <xsl:when test="$isParent='false'">
             <xsl:if test="atom:link">
-              <a  href="{atom:link/@href}" class="fdownload btn btn-default" title="{atom:link/@title}">DOWNLOAD</a>
+            <p>
+              <a  href="{atom:link/@href}" class="download btn btn-default" title="{atom:link/@title}">Download</a>
+            </p>
             </xsl:if>
           </xsl:when>
         </xsl:choose>
