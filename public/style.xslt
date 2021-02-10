@@ -34,7 +34,7 @@
         <h2 id="feedSubtitleText">
           <xsl:value-of select="atom:feed/atom:subtitle"/>
         </h2>
-        <table>
+        <table id="mainTable">
           <xsl:if test="$isParent = 'false'">
           <xsl:if test="atom:feed/atom:link[@rel='up']/@href">
 

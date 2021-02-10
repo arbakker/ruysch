@@ -16,6 +16,19 @@ export default {
   components: {
     // Prism,
   },
+  updated: function () {
+  this.$nextTick(function () {
+    // Code that will run only after the
+    // entire view has been re-rendered
+    // remove the 
+    if (!this.dataFeedId){
+      let table = document.getElementById("mainTable")
+      let parent = table.firstChild
+      parent.removeChild(parent.firstChild)
+    }
+    
+  })
+},
   computed: {
     ...mapFields({
       cswBaseUrl: "cswBaseUrl",
@@ -81,6 +94,7 @@ export default {
       let transformedDoc = xsltProcessor.transformToDocument(xmlDoc);
       const serializer = new XMLSerializer();
       this.feedHtml = serializer.serializeToString(transformedDoc);
+      
     },
     updateXml() {
       let atomXml = document.getElementById("atom-xml");
