@@ -175,6 +175,14 @@ export default {
       }
       return `${url}?request=GetCapabilities&service=WMTS`;
     },
+    getBaseUrl() {
+      let url = this.record.url;
+      console.log(url)
+      if (url.includes("?")) {
+        url = url.split("?")[0];
+      }
+      return url
+    },
     maxScaleDenominator() {
       if (this.selectedLayer.MaxScaleDenominator !== undefined) {
         return this.selectedLayer.MaxScaleDenominator;
@@ -371,7 +379,7 @@ export default {
         opacity: 1,
         source: new WMTS({
           attributions: "PDOK",
-          url: "https://geodata.nationaalgeoregister.nl/tiles/service/wmts",
+          url: this.getBaseUrl,
           layer: this.selectedLayer.identifier,
           matrixSet: tileMatrixId,
           format: "image/png",

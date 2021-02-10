@@ -16,25 +16,25 @@
     
       <p><span 
         v-bind:class="{ selected:  filter.ATOM}"
-        v-on:click="filter.ATOM = !filter.ATOM"
+        v-on:click="serviceTypeClicked('ATOM')"
         class="serviceTypeSelector">
         ATOM
         </span>
       <span 
         v-bind:class="{ selected:  filter.WFS}"
-        v-on:click="filter.WFS = !filter.WFS"
+        v-on:click="serviceTypeClicked('WFS')"
         class="serviceTypeSelector">
         WFS
         </span>
       <span 
         v-bind:class="{ selected:  filter.WMS}"
-        v-on:click="filter.WMS = !filter.WMS"
+        v-on:click="serviceTypeClicked('WMS')"
         class="serviceTypeSelector">
         WMS
         </span>
       <span 
         v-bind:class="{ selected:  filter.WMTS}"
-        v-on:click="filter.WMTS = !filter.WMTS"
+        v-on:click="serviceTypeClicked('WMTS')"
         class="serviceTypeSelector">
         WMTS
         </span>
@@ -96,6 +96,20 @@ export default {
     },
   },
   methods: {
+    serviceTypeClicked(svcType){
+      let keys = Object.keys(this.filter)
+      console.log(keys.filter(item =>  this.filter[item]).length ===1)
+      if (keys.every(item=> this.filter[item])){
+        keys.forEach(item=> this.filter[item] = false)
+        this.filter[svcType] = true
+      }else if (keys.filter(item =>  this.filter[item]).length ===1 && this.filter[svcType]) 
+        keys.forEach(item=> this.filter[item] = true)
+      else{
+        this.filter[svcType] = !this.filter[svcType]
+      }
+
+
+    },
     search(){
       let searchRecords = this.searchFilter()
       this.displayItems  = this.serviceTypeFilter(this.filter, searchRecords)
@@ -239,6 +253,7 @@ ul {
 	padding: .3em;
 	color: #7b7b7b;
 	border: 1px solid #a0a0a0;
+  cursor: default;
 }
 
 .serviceTypeSelector.selected {
@@ -246,6 +261,13 @@ ul {
 	color: #fff;
 	border: 1px solid #2196f3;
 }
+
+.serviceTypeSelector:hover{
+  font-weight:600;
+}
+
+
+
 
 
 </style>
