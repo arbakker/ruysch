@@ -8,11 +8,38 @@
       <input
         type="text"
         v-model="query"
-        v-on:change="search"
+        @keydown="search"
         :placeholder="
           'search in ' + records.length + ' services from ' + serviceOwner
         "
       />
+    
+      <p><span 
+        v-bind:class="{ selected:  filter.ATOM}"
+        v-on:click="filter.ATOM = !filter.ATOM"
+        class="serviceTypeSelector">
+        ATOM
+        </span>
+      <span 
+        v-bind:class="{ selected:  filter.WFS}"
+        v-on:click="filter.WFS = !filter.WFS"
+        class="serviceTypeSelector">
+        WFS
+        </span>
+      <span 
+        v-bind:class="{ selected:  filter.WMS}"
+        v-on:click="filter.WMS = !filter.WMS"
+        class="serviceTypeSelector">
+        WMS
+        </span>
+      <span 
+        v-bind:class="{ selected:  filter.WMTS}"
+        v-on:click="filter.WMTS = !filter.WMTS"
+        class="serviceTypeSelector">
+        WMTS
+        </span>
+      </p>
+      
       <p id="resultSummrary">
         {{ displayItems.length }} results in {{ cswBaseUrlHost }}
       </p>
@@ -41,8 +68,15 @@ export default {
   components: {
     ListItem,
   },
+  watch:{
+    filter: {
+     handler(){
+       this.search()
+     },
+     deep: true
+  }
+  },
   data: () => ({
-    query: "",
     serviceTypes: "",
   }),
   props: {},
@@ -52,6 +86,8 @@ export default {
       displayItems: "displayItems",
       cswLoaded: "cswLoaded",
       fuse: "fuse",
+      query: "query",
+      filter: "filter",
       cswBaseUrl: "cswBaseUrl",
       serviceOwner: "serviceOwner",
     }),
@@ -60,6 +96,20 @@ export default {
     },
   },
   methods: {
+    search(){
+      let searchRecords = this.searchFilter()
+      this.displayItems  = this.serviceTypeFilter(this.filter, searchRecords)
+    },
+    serviceTypeFilter(val, records){
+      return records.filter(function (service) {
+          if ((service.serviceType === "OGC:WMS" && val.WMS)||
+          (service.serviceType === "OGC:WFS" && val.WFS)||
+          (service.serviceType === "OGC:WMTS" && val.WMTS)||
+          (service.serviceType === "INSPIRE Atom" && val.ATOM)
+          ){
+            return service
+          }})
+    },
     compare(a, b) {
       if (a.title < b.title) {
         return -1;
@@ -75,15 +125,14 @@ export default {
         "%20"
       )}%27%20AND%20protocol=%27${protocol.replace(" ", "%20")}%27`;
     },
-    search() {
+    searchFilter() {
       if (this.query === "") {
-        this.displayItems = this.records;
-        return;
+        return this.records
       }
       const searchResult = this.fuse.search(this.query, {});
-      this.displayItems = searchResult
+      return  searchResult
         .map(({ item }) => item)
-        .sort(this.compare);
+        .sort(this.compare)
     },
     init(result) {
       this.records = result;
@@ -99,7 +148,7 @@ export default {
       };
       this.fuse = new Fuse(this.records, options);
       this.cswLoaded = true;
-
+      this.search()
     },
   },
 
@@ -183,4 +232,20 @@ ul {
 #loader {
   margin: 2em;
 }
+.serviceTypeSelector{
+  margin-left: .4em;
+	border-radius: 34px;
+	background-color: #fff;
+	padding: .3em;
+	color: #7b7b7b;
+	border: 1px solid #a0a0a0;
+}
+
+.serviceTypeSelector.selected {
+	background-color: #2196f3;
+	color: #fff;
+	border: 1px solid #2196f3;
+}
+
+
 </style>

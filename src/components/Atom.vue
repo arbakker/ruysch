@@ -7,8 +7,8 @@
 <script>
 // import Prism from "vue-prism-component";
 import csw from "../lib/csw";
-// import "prismjs";
-// import "prismjs/themes/prism.css";
+import { highlightAll } from "prismjs";
+import "prismjs/themes/prism.css";
 import { mapFields } from "vuex-map-fields";
 
 export default {
@@ -27,6 +27,7 @@ export default {
     capXml: "",
     xslt: "",
     serviceId: "",
+    dataFeedId: "",
     cswLoaded: false,
     record: {},
     serviceObject: {},
@@ -34,74 +35,110 @@ export default {
     feedHtml: "",
   }),
   mounted() {
-    this.serviceId = this.$route.params.serviceId;
-    let cswEndpoint = this.cswBaseUrl;
-
-    csw.getCSWRecord(cswEndpoint, this.serviceId).then((result) => {
-      this.record = result;
-      let url = this.record.url;
-
-      let promises = [];
-      promises.push(fetch(url));
-      promises.push(fetch("./style.xslt"));
-
-      Promise.all(promises).then((values) => {
-        Promise.all(
-          values.map((result) => {
-            return result.text();
-          })
-        ).then((textResults) => {
-          this.capXml = textResults[0];
-          this.xslt = textResults[1];
-          this.updateHtml()
-        });
-      });
-
-      this.cswLoaded = true;
-    });
+    this.init();
   },
-  watch: {},
-  methods: {
-    updateHtml(){
-          let parser = new DOMParser();
-          let xslDoc = parser.parseFromString(this.xslt, "text/xml");
-          let xsltProcessor = new XSLTProcessor();
-          xsltProcessor.importStylesheet(xslDoc);
-          let xmlDoc = parser.parseFromString(this.capXml, "text/xml");
-          let transformedDoc = xsltProcessor.transformToDocument(xmlDoc);
-          const serializer = new XMLSerializer();
-          this.feedHtml = serializer
-            .serializeToString(transformedDoc)
+  watch: {
+    $route() {
+      this.init();
     },
-    updateAtomHTLM(url){
-       fetch(url)
+  },
+  methods: {
+    init() {
+      this.serviceId = this.$route.params.serviceId;
+      let cswEndpoint = this.cswBaseUrl;
+      this.dataFeedId = this.$route.params.dataFeedId;
+
+      csw.getCSWRecord(cswEndpoint, this.serviceId).then((result) => {
+        this.record = result;
+        let url = this.record.url;
+        let promises = [];
+        if (this.dataFeedId !== undefined) {
+          url = this.dataFeedId;
+        }
+        promises.push(fetch(url));
+        promises.push(fetch("./style.xslt"));
+
+        Promise.all(promises).then((values) => {
+          Promise.all(
+            values.map((result) => {
+              return result.text();
+            })
+          ).then((textResults) => {
+            this.capXml = textResults[0];
+            this.xslt = textResults[1];
+            this.updateHtml();
+          });
+        });
+        this.cswLoaded = true;
+      });
+    },
+    updateHtml() {
+      let parser = new DOMParser();
+      let xslDoc = parser.parseFromString(this.xslt, "text/xml");
+      let xsltProcessor = new XSLTProcessor();
+      xsltProcessor.importStylesheet(xslDoc);
+      let xmlDoc = parser.parseFromString(this.capXml, "text/xml");
+      let transformedDoc = xsltProcessor.transformToDocument(xmlDoc);
+      const serializer = new XMLSerializer();
+      this.feedHtml = serializer.serializeToString(transformedDoc);
+    },
+    updateXml() {
+      let atomXml = document.getElementById("atom-xml");
+      atomXml.innerHTML = this.capXml;
+      let btn = document.getElementById("show");
+      let wrapper = document.getElementById("xml-wrapper");
+      // event listener for the show/hide atom xml button
+      btn.onclick = function () {
+        if (wrapper.style.display == "none") {
+          wrapper.style.display = "block";
+          btn.innerText = "Hide";
+        } else {
+          wrapper.style.display = "none";
+          btn.innerText = "Show";
+        }
+      };
+    },
+    updateAtomHTLM(url) {
+      fetch(url)
         .then((response) => {
           return response.text();
         })
         .then((text) => {
-          this.capXml = text
-          this.updateHtml()
-        })
+          this.capXml = text;
+          this.updateHtml();
+        });
     },
     handleClick(e) {
+      // change between service/data feed
       if (e.target.matches("a.atom-feed")) {
         e.preventDefault();
-        this.updateAtomHTLM(e.target.href);
-        return
-      }
-      if (e.target.matches("a.html-md")) {
-        e.preventDefault();
-        let url = new URL(e.target.href)
-        let id = ''
-        if (url.searchParams.get("id")){
-          id = url.searchParams.get("id")
-        }else if (url.searchParams.get("uuid")){
-          id = url.searchParams.get("uuid")
+        let params = { serviceId: this.serviceId };
+        if (this.dataFeedId === undefined) {
+          params["dataFeedId"] = e.target.href;
         }
-        let urlString = `${url.protocol}//${url.host}/geonetwork/srv/dut/catalog.search#/metadata/${id}`
-        window.location.href = urlString
+        this.$router.push({ name: "INSPIRE Atom", params: params });
+        this.init();
       }
-
+      // show/hide Atom XML
+      if (e.target.matches("#show")) {
+        e.preventDefault();
+        let atomXml = document.getElementById("atom-xml");
+        let capNewline = this.capXml
+          .replace(/<br \/>/g, "\n")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+        atomXml.innerHTML = capNewline;
+        highlightAll();
+        let wrapper = document.getElementById("xml-wrapper");
+        if (wrapper.style.display == "none") {
+          wrapper.style.display = "block";
+          e.target.innerText = "Hide";
+        } else {
+          wrapper.style.display = "none";
+          e.target.innerText = "Show";
+        }
+        return;
+      }
     },
   },
 };
@@ -111,8 +148,8 @@ pre[class*="language-"] {
   text-align: left;
   padding: 0px;
   margin: 0px;
-  height: 89vh;
   overflow: auto;
+  max-height: 50vh;
 }
 #container {
   height: 93vh;
@@ -129,9 +166,9 @@ pre[class*="language-"] {
   width: 100%;
 }
 
-a.atom-feed{
+a.atom-feed {
   text-decoration: none;
-  color:#2c3e50;
+  color: #2c3e50;
 }
 
 #meta {
@@ -160,52 +197,56 @@ a.atom-feed{
 #capbar button {
   height: 2em;
 }
-#content{
-  margin:1em;
+#content {
+  margin: 1em;
 }
 
-.entry{
-    margin-left:1em;
+.entry {
+  margin-left: 1em;
 }
 
-body{
-    margin:auto;
+body {
+  margin: auto;
 }
 
-div{
-    text-align:left;
+div {
+  text-align: left;
 }
 
-.entry{
-    position: relative;
-    border: 1px solid #eee;
-    border-radius: 4px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.1);
-    margin: 2em 0;
-    margin-top: 1em;
-    margin-right: 0px;
-    margin-bottom: 1em;
-    margin-left: 0px;
-    padding: 16px;
-    clear: both;
+.entry {
+  position: relative;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin: 2em 0;
+  margin-top: 1em;
+  margin-right: 0px;
+  margin-bottom: 1em;
+  margin-left: 0px;
+  padding: 16px;
+  clear: both;
 }
 
-a.download{
-    margin-top:1em;
+a.download {
+  margin-top: 1em;
+  background-color: #373d62;
+  color: white;
+  padding: 0.5em 1em;
+  text-decoration: none;
+  text-transform: uppercase;
 }
-.hide{
-    display: none;
-}
-
-
-.content{
-    margin-top: 0em;
-    margin:auto;
-    max-width: 720px;
+.hide {
+  display: none;
 }
 
-div#app{
-    margin-top: 0px!important;
+.content {
+  margin-top: 0em;
+  margin: auto;
+  max-width: 980px;
+}
+
+div#app {
+  margin-top: 0px !important;
 }
 
 h1,
@@ -213,36 +254,46 @@ h2,
 h3,
 h4,
 h5,
-h6{
-    margin-top:0px
+h6 {
+  margin-top: 0px;
 }
 
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+table {
+  border-collapse: separate;
+  border-spacing: 50px 0;
+  margin-left: -50px;
+}
 
-table, caption, tbody, tfoot, thead, tr, th, td {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    font-size: 100%;
-    font: inherit;
-    vertical-align: baseline;
-  }
-  table {
-    border-collapse: separate;
-    border-spacing: 50px 0;
-    margin-left:-50px;
-  }
+a:hover {
+  color: #38e9ff;
+}
 
-  a:hover{
-      color:#38e9ff;
-  }
+a {
+  cursor: pointer;
+  text-decoration: underline;
+  color: black;
+}
 
-
-  a { cursor: pointer; text-decoration:underline; }
-
-  ul{
-      list-style: none;
-      padding-left:1em;
-  }
-  
-  
+ul {
+  list-style: none;
+  padding-left: 1em;
+}
+h3 > a {
+  text-decoration: underline !important;
+}
 </style>

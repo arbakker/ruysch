@@ -96,13 +96,19 @@
 import View from "ol/View";
 import Map from "ol/Map";
 import TileLayer from "ol/layer/Tile";
-import OSM from "ol/source/OSM";
 import GeoJSON from "ol/format/GeoJSON";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import Overlay from "ol/Overlay";
 import {FullScreen, defaults as defaultControls} from 'ol/control';
 import "ol/ol.css";
+import proj4 from "proj4";
+import Projection from "ol/proj/Projection";
+import { register } from "ol/proj/proj4.js";
+import WMTS from "ol/source/WMTS";
+import WMTSTileGrid from "ol/tilegrid/WMTS";
+import { getTopLeft, getWidth } from "ol/extent";
+
 
 // fa icons
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -166,7 +172,7 @@ export default {
       if (url.includes("?")) {
         url = url.split("?")[0];
       }
-      return `${url}?request=GetFeature&service=WFS&version=2.0.0&outputFormat=application/json&srsname=EPSG:3857`;
+      return `${url}?request=GetFeature&service=WFS&version=2.0.0&outputFormat=application/json&srsname=EPSG:28992`;
     },
   },
   data: () => ({
@@ -230,19 +236,46 @@ export default {
         duration: 250,
       },
     });
+    register(proj4);
+    this.projection = new Projection({
+      code: "EPSG:28992",
+      extent: [-285401.92, 22598.08, 595401.92, 903401.92],
+    });
+
+    this.projectionExtent = this.projection.getExtent();
+    var size = getWidth(this.projectionExtent) / 256;
+    this.resolutions = new Array(20);
+    this.matrixIds = new Array(20);
+    for (var z = 0; z < 20; ++z) {
+      // generate resolutions and matrixIds arrays for this WMTS
+      this.resolutions[z] = size / Math.pow(2, z);
+      this.matrixIds[z] = z;
+    }
+    let projString = "EPSG:28992";
     this.olMap = new Map({
       target: this.$refs["map-root"],
       overlays: [this.overlay],
       controls: defaultControls().extend([new FullScreen()]),
       layers: [
         new TileLayer({
-          source: new OSM(), // tiles are served by OpenStreetMap
+          source: new WMTS({
+            attributions: "PDOK",
+            url: "https://geodata.nationaalgeoregister.nl/tiles/service/wmts",
+            layer: "brtachtergrondkaartgrijs",
+            matrixSet: projString,
+            format: "image/png",
+            projection: this.projection,
+            tileGrid: this.getTileGrid(projString),
+            style: "default",
+            wrapX: true,
+          }),
         }),
       ],
       view: new View({
-        zoom: 7,
-        center: [681820.9487, 6832242.7535],
+        zoom: 3,
+        center: [156371.3422,461945.6757],
         constrainResolution: true,
+        projection:  this.projection
       }),
     });
     this.olMap.on("click", (evt) => {
@@ -289,6 +322,42 @@ export default {
   },
   watch: {},
   methods: {
+     getTileGrid(gridIdentifier) {
+      const resolutions = [
+        3440.64,
+        1720.32,
+        860.16,
+        430.08,
+        215.04,
+        107.52,
+        53.76,
+        26.88,
+        13.44,
+        6.72,
+        3.36,
+        1.68,
+        0.84,
+        0.42,
+        0.21,
+        0.105,
+        0.05025,
+      ];
+      const matrixIds = new Array(15);
+      if (gridIdentifier === "EPSG:28992") {
+        for (let i = 0; i < 15; ++i) {
+          matrixIds[i] = i;
+        }
+      } else if (gridIdentifier === "EPSG:28992:16") {
+        for (let i = 0; i < 17; ++i) {
+          matrixIds[i] = i;
+        }
+      }
+      return new WMTSTileGrid({
+        origin: getTopLeft(this.projectionExtent),
+        resolutions: resolutions,
+        matrixIds: matrixIds,
+      });
+    },
     closePopup() {
       // Set the position of the pop-up window to undefined, and clear the coordinate data
       this.overlay.setPosition(undefined);
@@ -326,16 +395,22 @@ export default {
     loadFeatures: function () {
       const extent = this.olMap.getView().calculateExtent();
       const extentString = extent.join(",");
-      const getFeatureUrl = `${this.getFeatureUrl}&count=${this.maxFeatures}&typename=${this.selectedFeature.Name}&bbox=${extentString},EPSG:3857`;
+      const getFeatureUrl = `${this.getFeatureUrl}&count=${this.maxFeatures}&typename=${this.selectedFeature.Name}&bbox=${extentString},EPSG:28992`;
 
       fetch(getFeatureUrl)
         .then((response) => {
           return response.json();
         })
         .then((data) => {
+          let ftProj = 'EPSG:28992'
+          console.log(ftProj)
           var vectorSource = new VectorSource({
-            features: new GeoJSON().readFeatures(data),
+            features: new GeoJSON({
+              defaultDataProjection: 'EPSG:28992',
+              featureProjection: 'EPSG:28992'
+            }).readFeatures(data),
           });
+          
           if (this.vectorLayer) {
             this.olMap.removeLayer(this.vectorLayer);
           }

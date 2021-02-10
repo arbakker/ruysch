@@ -14,8 +14,15 @@ export default new Vuex.Store({
         serviceOwner: serviceOwner,
         records: [],
         displayItems: [],
+        query: "",
         cswLoaded: false,
-        fuse: {}
+        fuse: {},
+        filter: {
+            WMS: true,
+            ATOM: true,
+            WFS: true,
+            WMTS: true
+          }
     },
     getters: {
         getField,

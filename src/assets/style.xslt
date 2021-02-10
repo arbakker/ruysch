@@ -20,24 +20,12 @@
         <title>
           <xsl:value-of select="atom:feed/atom:title"/>
         </title>
-        <link rel="stylesheet" type="text/css" href="{{host}}/assets/deps.css"/>
+        <!-- <link rel="stylesheet" type="text/css" href="{{host}}/assets/deps.css"/>
         <link rel="stylesheet" type="text/css" href="{{host}}/style/style.css"/>
-        <script src="{{host}}/assets/deps.js"/>
+        <script src="{{host}}/assets/deps.js"/> -->
       </head>
 
       <body>
-        <header id="banner" role="banner">
-          <div id="heading">
-            <nav role="navigation" class="full-width navbar navbar-default">
-              <div class="content">
-                <a class="navbar-brand" href="https://www.pdok.nl">
-                  <img src="{{host}}/assets/images/pdok-logo.png" alt="Logo PDOK: Ga naar de homepage"/>
-                </a>
-              </div>
-            </nav>
-          </div>
-        </header>
-
         <div class="content">
           <div id="feedTitleContainer" class="entry">
             <h1 id="feedTitleText">
@@ -124,7 +112,9 @@
             </table>
             <div id="xml-wrapper" style="display:none;">
               <pre>
-                <code class="language-markup" id="atom-xml"></code>
+                <code class="language-markup" id="atom-xml">
+                {{ capXml }} HAHA
+                </code>
               </pre>
             </div>
           </div>

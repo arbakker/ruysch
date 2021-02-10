@@ -33,7 +33,7 @@ const routes = [
   { path: '/wfs-service/:serviceId', component: WFSMap, name: 'OGC:WFS', },
   { path: '/wmts-service/:serviceId', component: WMTSMap, name: 'OGC:WMTS', },
 
-  { path: '/atom-service/:serviceId', component: Atom, name: 'INSPIRE Atom', },
+  { path: '/atom-service/:serviceId/:dataFeedId?', component: Atom, name: 'INSPIRE Atom', },
   { path: '/', redirect: '/home' },
   { path: '*', redirect: 'home'}
 ]

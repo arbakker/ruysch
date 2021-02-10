@@ -108,11 +108,17 @@ import Map from "ol/Map";
 import TileLayer from "ol/layer/Tile";
 import ImageLayer from "ol/layer/Image";
 import ImageWMS from "ol/source/ImageWMS";
-import OSM from "ol/source/OSM";
 import WMSCapabilities from "ol/format/WMSCapabilities";
 import { get as getProjection } from "ol/proj";
 import {FullScreen, defaults as defaultControls} from 'ol/control';
 import "ol/ol.css";
+import proj4 from "proj4";
+import Projection from "ol/proj/Projection";
+import { register } from "ol/proj/proj4.js";
+import WMTS from "ol/source/WMTS";
+import WMTSTileGrid from "ol/tilegrid/WMTS";
+import { getTopLeft, getWidth } from "ol/extent";
+
 
 // fa
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -219,18 +225,46 @@ export default {
       this.cswLoaded = true;
     });
 
+    register(proj4);
+    this.projection = new Projection({
+      code: "EPSG:28992",
+      extent: [-285401.92, 22598.08, 595401.92, 903401.92],
+    });
+
+    this.projectionExtent = this.projection.getExtent();
+    var size = getWidth(this.projectionExtent) / 256;
+    this.resolutions = new Array(20);
+    this.matrixIds = new Array(20);
+    for (var z = 0; z < 20; ++z) {
+      // generate resolutions and matrixIds arrays for this WMTS
+      this.resolutions[z] = size / Math.pow(2, z);
+      this.matrixIds[z] = z;
+    }
+    let projString = "EPSG:28992";
+
     this.olMap = new Map({
       controls: defaultControls().extend([new FullScreen()]),
       target: this.$refs["map-root"],
       layers: [
         new TileLayer({
-          source: new OSM(),
+          source: new WMTS({
+            attributions: "PDOK",
+            url: "https://geodata.nationaalgeoregister.nl/tiles/service/wmts",
+            layer: "brtachtergrondkaartgrijs",
+            matrixSet: projString,
+            format: "image/png",
+            projection: this.projection,
+            tileGrid: this.getTileGrid(projString),
+            style: "default",
+            wrapX: true,
+          }),
         }),
       ],
       view: new View({
-        zoom: 7,
-        center: [681820.9487, 6832242.7535],
+        zoom: 3,
+        center: [156371.3422,461945.6757],
         constrainResolution: true,
+        projection: this.projection
       }),
     });
     setTimeout( ()=> {this.olMap.updateSize();}, 200);
@@ -254,6 +288,42 @@ export default {
     },
   },
   methods: {
+    getTileGrid(gridIdentifier) {
+      const resolutions = [
+        3440.64,
+        1720.32,
+        860.16,
+        430.08,
+        215.04,
+        107.52,
+        53.76,
+        26.88,
+        13.44,
+        6.72,
+        3.36,
+        1.68,
+        0.84,
+        0.42,
+        0.21,
+        0.105,
+        0.05025,
+      ];
+      const matrixIds = new Array(15);
+      if (gridIdentifier === "EPSG:28992") {
+        for (let i = 0; i < 15; ++i) {
+          matrixIds[i] = i;
+        }
+      } else if (gridIdentifier === "EPSG:28992:16") {
+        for (let i = 0; i < 17; ++i) {
+          matrixIds[i] = i;
+        }
+      }
+      return new WMTSTileGrid({
+        origin: getTopLeft(this.projectionExtent),
+        resolutions: resolutions,
+        matrixIds: matrixIds,
+      });
+    },
     zoomTo() {
       const INCHES_PER_M = 39.37;
       const DOTS_PER_INCH = 96;
@@ -291,7 +361,7 @@ export default {
         ratio: 1,
         hidpi: false,
         serverType: "mapserver",
-        projection: getProjection("EPSG:3857"),
+        projection: getProjection("EPSG:28992"),
       });
       return new ImageLayer({
         source: wmsSource,
