@@ -154,6 +154,17 @@
               </td>
             </tr>
           </xsl:if>
+
+        <xsl:if test="georss:polygon">
+            <tr>
+              <td>Map area</td>
+
+              <td>
+              <canvas  georss-polygon="{georss:polygon}"> ></canvas>
+              </td>
+            </tr>
+          </xsl:if>
+
           <xsl:if test="atom:category/@term">
             <tr>
               <td>Projection</td>

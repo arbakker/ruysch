@@ -7,6 +7,7 @@
 <script>
 // import Prism from "vue-prism-component";
 import csw from "../lib/csw";
+import bboxOverview from "../lib/bbox-overview";
 import { highlightAll } from "prismjs";
 import "prismjs/themes/prism.css";
 import { mapFields } from "vuex-map-fields";
@@ -26,6 +27,12 @@ export default {
       let parent = table.firstChild
       parent.removeChild(parent.firstChild)
     }
+
+    const canvasEls = document.getElementsByTagName('canvas')
+    for (const item of canvasEls) {
+      bboxOverview.addOverviewImageToCanvasEl(item, '', 200)
+    }
+
     
   })
 },
