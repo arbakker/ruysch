@@ -1,39 +1,57 @@
   <template>
   <div>
-    <div id="content" v-html="feedHtml" @click="handleClick"></div>
+    <atom-feed
+      :feedData="feedData"
+      :feedXml="feedXml"
+      :showDataFeed="showDataFeed"
+      :showParent="true"
+      :isParent="isParent"
+    ></atom-feed>
+    <atom-feed
+      v-if="loadChildFeed"
+      :feedData="childFeedData"
+      :feedXml="childFeedXml"
+      :showDataFeed="true"
+      :showParent="false"
+      :isParent="false"
+    ></atom-feed>
   </div>
 </template>
 
 <script>
-// import Prism from "vue-prism-component";
 import csw from "../lib/csw";
-import { highlightAll } from "prismjs";
+import xml from "../lib/xml";
+import "prismjs";
 import "prismjs/themes/prism.css";
+// import Prism from "vue-prism-component";
 import { mapFields } from "vuex-map-fields";
+import { JSONPath } from "jsonpath-plus";
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+// import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import AtomFeed from "./AtomFeed.vue";
+
+import {
+  faTimes,
+  faClipboard,
+  faFileCode,
+  faDownload,
+} from "@fortawesome/free-solid-svg-icons";
+library.add([faTimes, faClipboard, faFileCode, faDownload]);
 
 export default {
   name: "Atom",
   components: {
-    // Prism,
+    AtomFeed,
   },
-  updated: function () {
-  this.$nextTick(function () {
-    // Code that will run only after the
-    // entire view has been re-rendered
-    // remove the 
-    if (!this.dataFeedId){
-      let table = document.getElementById("mainTable")
-      let parent = table.firstChild
-      parent.removeChild(parent.firstChild)
-    }
-    
-  })
-},
   computed: {
     ...mapFields({
       cswBaseUrl: "cswBaseUrl",
       serviceOwner: "serviceOwner",
     }),
+    isParent: function () {
+      return this.$route.params.dataFeedId === undefined;
+    },
   },
   data: () => ({
     capVis: false,
@@ -41,11 +59,18 @@ export default {
     xslt: "",
     serviceId: "",
     dataFeedId: "",
-    cswLoaded: false,
+    atomLoaded: false,
     record: {},
     serviceObject: {},
     dataFeedObjects: [],
     feedHtml: "",
+    feedData: {},
+    feedXml: "",
+    isVisible: {},
+    showDataFeed: true,
+    loadChildFeed: false,
+    childFeedData: {},
+    childFeedXml: "",
   }),
   mounted() {
     this.init();
@@ -56,6 +81,26 @@ export default {
     },
   },
   methods: {
+    addDownloadLink() {
+      this.feedData.feed.entry.map((el) => {
+        let jsonPath =
+          "$.link[?(@._attributes?.rel === 'alternate' && @._attributes?.type !== 'application/atom+xml')]";
+        let result = JSONPath({ path: jsonPath, json: el });
+        if (result.length === 1) {
+          el["downloadLink"] = result[0];
+        }
+      });
+    },
+    addFeedLink() {
+      this.feedData.feed.entry.map((el) => {
+        let jsonPath =
+          "$.link[?(@._attributes?.rel == 'alternate' && @._attributes?.type == 'application/atom+xml')]";
+        let result = JSONPath({ path: jsonPath, json: el });
+        if (result.length === 1) {
+          el["dataFeedLink"] = result[0];
+        }
+      });
+    },
     init() {
       this.serviceId = this.$route.params.serviceId;
       let cswEndpoint = this.cswBaseUrl;
@@ -64,107 +109,66 @@ export default {
       csw.getCSWRecord(cswEndpoint, this.serviceId).then((result) => {
         this.record = result;
         let url = this.record.url;
-        let promises = [];
         if (this.dataFeedId !== undefined) {
           url = this.dataFeedId;
         }
-        promises.push(fetch(url));
-        promises.push(fetch("./style.xslt"));
-
-        Promise.all(promises).then((values) => {
-          Promise.all(
-            values.map((result) => {
-              return result.text();
-            })
-          ).then((textResults) => {
-            this.capXml = textResults[0];
-            this.xslt = textResults[1];
-            this.updateHtml();
+        fetch(url)
+          .then((response) => response.text())
+          .then((data) => {
+            this.feedXml = data;
+            let parser = new DOMParser();
+            let xmlDoc = parser.parseFromString(data, "text/xml");
+            let json = xml.xmlToJson(xmlDoc);
+            let feedData = xml.removeKeys(json, ["_text"]);
+            // casting objects to array
+            if (!Array.isArray(feedData.feed.entry)) {
+              feedData.feed.entry = [feedData.feed.entry];
+            }
+            feedData.feed.entry.map((x) => {
+              if (!Array.isArray(x.link)) {
+                x.link = [x.link];
+              }
+            });
+            this.feedData = feedData;
+            this.addDownloadLink();
+            this.addFeedLink();
+            if (
+              this.feedData.feed.entry.length === 1 &&
+              this.feedData.feed.entry[0].dataFeedLink
+            ) {
+              let url = this.feedData.feed.entry[0].dataFeedLink._attributes
+                .href;
+              fetch(url)
+                .then((response) => response.text())
+                .then((data) => {
+                  this.childFeedXml = data;
+                  let parser = new DOMParser();
+                  let xmlDoc = parser.parseFromString(data, "text/xml");
+                  let json = xml.xmlToJson(xmlDoc);
+                  let feedData = xml.removeKeys(json, ["_text"]);
+                  // casting objects to array
+                  if (!Array.isArray(feedData.feed.entry)) {
+                    feedData.feed.entry = [feedData.feed.entry];
+                  }
+                  feedData.feed.entry.map((x) => {
+                    if (!Array.isArray(x.link)) {
+                      x.link = [x.link];
+                    }
+                  });
+                  this.childFeedData = feedData;
+                  this.addDownloadLink();
+                  this.showDataFeed = false;
+                  this.loadChildFeed = true;
+                });
+            }
+            this.atomLoaded = true;
           });
-        });
-        this.cswLoaded = true;
       });
-    },
-    updateHtml() {
-      let parser = new DOMParser();
-      let xslDoc = parser.parseFromString(this.xslt, "text/xml");
-      let xsltProcessor = new XSLTProcessor();
-      xsltProcessor.importStylesheet(xslDoc);
-      let xmlDoc = parser.parseFromString(this.capXml, "text/xml");
-      let transformedDoc = xsltProcessor.transformToDocument(xmlDoc);
-      const serializer = new XMLSerializer();
-      this.feedHtml = serializer.serializeToString(transformedDoc);
-      
-    },
-    updateXml() {
-      let atomXml = document.getElementById("atom-xml");
-      atomXml.innerHTML = this.capXml;
-      let btn = document.getElementById("show");
-      let wrapper = document.getElementById("xml-wrapper");
-      // event listener for the show/hide atom xml button
-      btn.onclick = function () {
-        if (wrapper.style.display == "none") {
-          wrapper.style.display = "block";
-          btn.innerText = "Hide";
-        } else {
-          wrapper.style.display = "none";
-          btn.innerText = "Show";
-        }
-      };
-    },
-    updateAtomHTLM(url) {
-      fetch(url)
-        .then((response) => {
-          return response.text();
-        })
-        .then((text) => {
-          this.capXml = text;
-          this.updateHtml();
-        });
-    },
-    handleClick(e) {
-      // change between service/data feed
-      if (e.target.matches("a.atom-feed")) {
-        e.preventDefault();
-        let params = { serviceId: this.serviceId };
-        if (this.dataFeedId === undefined) {
-          params["dataFeedId"] = e.target.href;
-        }
-        this.$router.push({ name: "INSPIRE Atom", params: params });
-        this.init();
-      }
-      // show/hide Atom XML
-      if (e.target.matches("#show")) {
-        e.preventDefault();
-        let atomXml = document.getElementById("atom-xml");
-        let capNewline = this.capXml
-          .replace(/<br \/>/g, "\n")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;");
-        atomXml.innerHTML = capNewline;
-        highlightAll();
-        let wrapper = document.getElementById("xml-wrapper");
-        if (wrapper.style.display == "none") {
-          wrapper.style.display = "block";
-          e.target.innerText = "Hide";
-        } else {
-          wrapper.style.display = "none";
-          e.target.innerText = "Show";
-        }
-        return;
-      }
     },
   },
 };
 </script>
 <style >
-pre[class*="language-"] {
-  text-align: left;
-  padding: 0px;
-  margin: 0px;
-  overflow: auto;
-  max-height: 50vh;
-}
 #container {
   height: 93vh;
   display: flex; /* Magic begins */
@@ -237,8 +241,11 @@ div {
   margin-right: 0px;
   margin-bottom: 1em;
   margin-left: 0px;
-  padding: 16px;
   clear: both;
+  padding: 16px;
+}
+.codeWrapper.entry {
+  padding: 0px;
 }
 
 a.download {
@@ -261,6 +268,31 @@ a.download {
 
 div#app {
   margin-top: 0px !important;
+}
+
+.hide-xml {
+  text-decoration: none;
+}
+.codeWrapper > a {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+}
+.codeWrapper {
+  position: relative;
+  top: 0;
+  left: 0;
+}
+
+pre[class*="language-"] {
+  font-size: 0.9em;
+  margin: 0;
+}
+
+code {
+  white-space: break-spaces !important;
+  /* white-space: pre-wrap !important; */
+  word-break: break-word !important;
 }
 
 h1,
@@ -309,5 +341,15 @@ ul {
 }
 h3 > a {
   text-decoration: underline !important;
+}
+.subtitle {
+  font-style: italic;
+}
+
+.show-xml.hide-xml {
+  position: fixed;
+  top: 1em;
+  right: 1em;
+  z-index: 200;
 }
 </style>
