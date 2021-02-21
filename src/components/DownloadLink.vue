@@ -3,7 +3,7 @@
     :href="downloadLink._attributes.href"
     class="download btn btn-default"
     download
-    :title="getDownloadLink._attributes.title"
+    :title="downloadLink._attributes.title"
     >Download</a
   >
 </template>
