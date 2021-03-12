@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import fs from 'fs'
+import yargs from 'yargs'
 import {DOMParser} from 'xmldom'
-
 import { cswBaseUrl } from './config.js'
 import { serviceOwner } from './config.js'
 import { serviceTypes } from './config.js'
@@ -9,6 +9,7 @@ import { serviceTypes } from './config.js'
 const CSW_NS_URI = "http://www.opengis.net/cat/csw/2.0.2";
 const DC_NS_URL = "http://purl.org/dc/elements/1.1/"
 const DCT_NS_URL = "http://purl.org/dc/terms/"
+const GMD_NS_URL = "http://www.isotc211.org/2005/gmd"
 const OUTPUT_DIR = "../src/assets"
 const OUTPUT_FILE = `${OUTPUT_DIR}/pdok-services.json`;
 
@@ -58,7 +59,7 @@ var getRequests = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
   return promises
 }
 
-var getCSWRecords = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
+var getCSWRecords = async (cswEndpoint, cqlQuery, includeServiceUrls, maxRecords = 0) => {
   let records = [];
   let promises = getRequests(cswEndpoint, cqlQuery, maxRecords);
   const responses = await promises;
@@ -66,12 +67,16 @@ var getCSWRecords = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
     return Promise.all(bodies.map((body) => { return body.text() })).then((data) => {
       return data
     }).catch(
-      // console.error
+      error => {
+        throw(error);
+    }
     );
   }).catch(
-    // console.error
+    error => {
+      throw(error);
+  }
   );
-  responseBodies.forEach((body) => {
+  for (const body of responseBodies) {
     let parser = new DOMParser()
     let xmlDoc = parser.parseFromString(body, "text/xml")
     let recordsNodes = xmlDoc.getElementsByTagNameNS(CSW_NS_URI, "SummaryRecord")
@@ -91,14 +96,30 @@ var getCSWRecords = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
       record.id = mdId
       record.abstract = abstract
       record.keywords = kws
+      if (includeServiceUrls){
+        let serviceUrl = await fetch(`${cswEndpoint}?request=GetRecordById&Service=CSW&Version=2.0.2&typeNames=gmd:MD_Metadata&id=${mdId}&outputSchema=http://www.isotc211.org/2005/gmd&elementSetName=full`).
+        then(response=>response.text())
+        .then(responseBody=>{
+           const parser = new DOMParser()
+           const xmlDoc = parser.parseFromString(responseBody, "text/xml")
+           const distInfoNode = xmlDoc.getElementsByTagNameNS(GMD_NS_URL, "distributionInfo")[0]
+           const olResourceNode = distInfoNode.getElementsByTagNameNS(GMD_NS_URL, "CI_OnlineResource")[0]
+           const urlText = olResourceNode.getElementsByTagNameNS(GMD_NS_URL, "URL")[0].textContent
+           return urlText
+        }).catch(error => {
+          throw(error);
+      }
+        );
+        record.serviceUrl = serviceUrl
+      }
       // record.modified = modified
       records.push(record)
     }
-  })
+  }
   return records;
 }
 
-function main() {
+function main(includeServiceUrls) {
   try {
     fs.unlinkSync(OUTPUT_FILE)
     //file removed
@@ -111,7 +132,7 @@ function main() {
   }
   let promises = [];
   queries.forEach((query) => {
-    promises.push(getCSWRecords(cswBaseUrl, query, 5));
+    promises.push(getCSWRecords(cswBaseUrl, query, includeServiceUrls));
   });
 
   Promise.all(promises).then((values) => {
@@ -133,8 +154,13 @@ function main() {
       console.log(`Wrote service config in file ${OUTPUT_FILE}`);
     });
   }).catch(
-    // console.error
+    error => {
+      throw(error);
+  }
   );
 }
 
-main()
+var argv = yargs(process.argv.slice(2)).argv;
+const includeServiceUrls = argv.i || argv.inclServiceUrl ? true: false
+console.log(`includeServiceUrls: ${includeServiceUrls}`)
+main(includeServiceUrls)
