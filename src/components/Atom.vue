@@ -168,21 +168,7 @@ export default {
   },
 };
 </script>
-<style >
-#container {
-  height: 93vh;
-  display: flex; /* Magic begins */
-  flex: 0 0 100%;
-}
-#map {
-  width: 100%;
-  height: 70vh;
-}
-#main {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
+<style scoped>
 
 a.atom-feed {
   text-decoration: none;
@@ -231,19 +217,7 @@ div {
   text-align: left;
 }
 
-.entry {
-  position: relative;
-  border: 1px solid #eee;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  margin: 2em 0;
-  margin-top: 1em;
-  margin-right: 0px;
-  margin-bottom: 1em;
-  margin-left: 0px;
-  clear: both;
-  padding: 16px;
-}
+
 .codeWrapper.entry {
   padding: 0px;
 }

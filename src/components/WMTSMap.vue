@@ -1,5 +1,5 @@
   <template>
-  <div style="position: relative">
+  <div id="comp-root" style="position: relative">
     <h2 v-if="!cswLoaded">Loading...</h2>
     <div v-show="capVis && capXml !== ''">
       <div id="capbar">
@@ -26,12 +26,10 @@
         :record="record"
       ></service-info>
     </div>
-    <div id="container" v-show="!capVis && !serviceInfoVis">
-      <div id="main">
-        <div id="map" ref="map-root"></div>
+    <div id="container" class="main" v-show="!capVis && !serviceInfoVis">
+      <div id="map" ref="map-root"></div>
+      <div id="sidebar">
         <div id="meta" v-if="cswLoaded"></div>
-      </div>
-      <div id="mapControls">
         <div class="mapControl">
           <h3 v-if="serviceObject && serviceObject.title">
             {{ serviceObject.title }}
@@ -401,11 +399,7 @@ pre[class*="language-"] {
   height: 89vh;
   overflow: auto;
 }
-#container {
-  height: 93vh;
-  display: flex;
-  flex: 0 0 100%;
-}
+
 
 #meta {
   width: 100%;

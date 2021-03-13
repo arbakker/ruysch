@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-    
     <div class="nav">
       <router-link to="/home"
         ><img class="nav-image" alt="PDOK logo" src="./assets/pdok-logo.png"
@@ -26,6 +25,12 @@ export default {
 </script>
 
 <style>
+
+:root {
+    --nav-height: 3em;
+    --sidebar-width: 35%;
+  }
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -33,11 +38,37 @@ export default {
   color: #2c3e50;
 }
 .nav{
-  background-color: #373D62;
-  height: 7vh;
-  display: flex;
-  /* justify-content: center; */
-  align-items: center;
+  height: var(--nav-height);
+  background-color:  #1a1e4f;
+  position: relative;
+  vertical-align:center;
+}
+
+#container{
+  height: calc(100vh - var(--nav-height));
+}
+.main {
+  height: calc(100vh - var(--nav-height));
+  overflow-y: auto;
+}
+
+#comp-root{
+  height:100%;
+}
+#map{
+  flex: calc(100% - var(--sidebar-width));
+  height: calc(100vh - var(--nav-height));
+}
+#sidebar {
+  flex: var(--sidebar-width);
+  flex-grow: 0;     
+  flex-shrink: 0; 
+  padding: 1em;
+  box-sizing: border-box; 
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box;    
+  overflow-y: auto;
+  height: calc(100vh - var(--nav-height));
 }
 body{
 padding: 0px;
@@ -82,12 +113,15 @@ background-color:#999999;
     margin:0.2em auto;
  }
 }
-#mapControls {
-  height: 93vh;
-  overflow: auto;
-  text-align: left;
-  flex-basis: 30%;
+
+#container {
+  height:100%;
+  display: flex;
+  flex: 1;
+  flex-grow: initial;
+  flex-shrink: initial;
 }
+
 #main {
   display: flex;
   flex-direction: column;
@@ -95,11 +129,9 @@ background-color:#999999;
   flex-basis: 70%;
 }
 .mapControl {
-  margin: 0.3em;
-  max-width: 95%;
   /* margin-bottom: 1em; */
-  border: lightgrey solid 1px;
-  padding: 0.4em;
+  border-bottom: lightgrey solid 1px;
+  margin-bottom: 1em;
 }
 .mapControl div {
   margin-bottom: 0.5em;
@@ -110,10 +142,6 @@ background-color:#999999;
 
 label {
   margin-right: 0.5em;
-}
-#map {
-  width: 100%;
-  height: 93vh;
 }
 h3{
   margin:unset;

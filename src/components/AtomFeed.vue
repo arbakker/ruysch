@@ -223,10 +223,29 @@ export default {
   },
 };
 </script>
-<style>
+<style scoped>
 .codeWrapper > a {
   position: relative;
   top: 1em;
   right: 1em;
+}
+
+.entry {
+  position: relative;
+  /* border: 1px solid #eee; */
+  /* border-radius: 4px; */
+  /* box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1); */
+  /* margin: 2em 0;
+  margin-right: 0px;
+  margin-bottom: 1em;
+  margin-left: 0px; */
+  margin-top: 1em;
+  padding-bottom: 1em;
+  
+  clear: both;
+  border-bottom: lightgrey solid 1px;
+}
+.feedTitleText{
+  margin:unset;
 }
 </style>

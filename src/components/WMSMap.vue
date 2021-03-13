@@ -1,6 +1,7 @@
   <template>
-  <div style="position: relative">
+  <div id="comp-root" style="position: relative">
     <h2 v-if="!cswLoaded">Loading...</h2>
+    
     <div v-show="capVis && capXml !== ''">
       <div id="capbar">
         <button v-clipboard="() => capXml">
@@ -15,6 +16,7 @@
         {{ capXml }}
       </prism>
     </div>
+    
     <div v-if="serviceInfoVis">
       <div id="capbar">
         <button @click="serviceInfoVis = false">
@@ -23,14 +25,12 @@
       </div>
       <service-info :serviceObject="serviceObject" :record="record"></service-info>
     </div>
-    <div id="container" v-show="!capVis && !serviceInfoVis">
-      <div id="main">
-        <div id="map" ref="map-root"></div>
+
+    <div id="container" class="main" v-show="!capVis && !serviceInfoVis">
+      
+      <div id="map" ref="map-root"></div>
+      <div id="sidebar">
         <div id="meta" v-if="cswLoaded">
-         
-        </div>
-      </div>
-      <div id="mapControls">
         <div class="mapControl">
            
         <h3
@@ -47,6 +47,7 @@
          </dl>
         </div>
         <div class="mapControl">
+          <layer-control  v-if="cswLoaded" :layers="layers"></layer-control>
           <div>
             <label>layer</label>
           <select
@@ -84,6 +85,9 @@
           </button>
         </div>
         </div>
+        <div class="mapControl" v-if="selectedLayer">
+          <layer-info :itemType="'Layer'" :item="selectedLayer"></layer-info>
+        </div>
         <div class="mapControl" v-if="(legendUrl !== '')">
           <h3>Legend</h3>
           <div style="overflow-x:auto;">
@@ -93,11 +97,10 @@
           />
           </div>
         </div>
-        <div class="mapControl" v-if="selectedLayer">
-          <layer-info :itemType="'Layer'" :item="selectedLayer"></layer-info>
-        </div>
+        
       </div>
     </div>
+  </div>
   </div>
 </template>
 
@@ -141,6 +144,8 @@ import { mapFields } from "vuex-map-fields";
 // components
 import LayerInfo from "./LayerInfo.vue";
 import ServiceInfo from "./ServiceInfo.vue";
+import LayerControl from "./LayerControl.vue";
+
 
 export default {
   name: "WMTSMap",
@@ -148,7 +153,8 @@ export default {
     Prism,
     FontAwesomeIcon,
     LayerInfo,
-    ServiceInfo
+    ServiceInfo,
+    LayerControl
   },
   computed: {
     ...mapFields({
@@ -221,8 +227,9 @@ export default {
           });
 
           this.selectedStyle = this.layers[0].Style[0];
+          this.cswLoaded = true;
         });
-      this.cswLoaded = true;
+     
     });
 
     register(proj4);
@@ -391,12 +398,6 @@ pre[class*="language-"] {
   height: 89vh;
   overflow: auto;
 }
-#container {
-  height: 93vh;
-  display: flex;
-  flex: 0 0 100%;
-}
-
 
 #meta {
   width: 100%;
@@ -418,6 +419,5 @@ pre[class*="language-"] {
 }
 #legend{
   padding: 0.2em;
-  border: lightgrey dotted 1px;
 }
 </style>

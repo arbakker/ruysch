@@ -1,5 +1,5 @@
   <template>
-  <div style="position: relative">
+   <div class="main">
     <h2 v-if="!cswLoaded">Loading...</h2>
     <div v-show="capVis && capXml !== ''">
       <div id="capbar">
@@ -35,7 +35,7 @@
         </div>
         <div id="meta" v-if="cswLoaded"></div>
       </div>
-      <div id="mapControls">
+      <div id="sidebar">
         <div  class="mapControl">
         <h3
           v-if="

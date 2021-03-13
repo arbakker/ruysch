@@ -1,5 +1,6 @@
 <template>
-  <div class="search">
+  <div class="main">
+    <div id="header">
     <div id="loader" v-if="!cswLoaded">
       <div class="loader"></div>
       <p>Loading records from {{ cswBaseUrlHost }}</p>
@@ -43,6 +44,7 @@
       <p id="resultSummrary">
         {{ displayItems.length }} results in {{ cswBaseUrlHost }}
       </p>
+      </div>
       <div id="results">
         <ul>
           <template v-for="item in displayItems">
@@ -207,6 +209,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+
 input {
   width: 20em;
   border: #ddd solid 1px;
@@ -217,11 +220,7 @@ input {
 ul {
   padding: unset;
 }
-.search {
-  height: 93vh;
-  overflow-y: auto;
-  margin-left: 3em;
-}
+
 #resultSummrary {
   font-style: italic;
 }
@@ -266,6 +265,12 @@ ul {
   font-weight:600;
 }
 
+#results{
+  margin:1em;
+}
+#header{
+  margin:1em;
+}
 
 
 
