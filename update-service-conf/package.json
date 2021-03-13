@@ -13,6 +13,7 @@
   "dependencies": {
     "jsdom": "^16.4.0",
     "node-fetch": "^2.6.1",
-    "xmldom": "^0.4.0"
+    "xmldom": "^0.4.0",
+    "yargs": "^16.2.0"
   }
 }
