@@ -145,7 +145,6 @@ export default {
     }),
     legendUrls(){
       const result = []
-
       // loop backwards to account for layer order
       for (let index = this.olWmsLayers.length - 1; index >= 0; index--) {
         let wmsLyr = this.olWmsLayers[index]
@@ -336,9 +335,6 @@ export default {
       })
     });
     setTimeout( ()=> {this.olMap.updateSize();}, 200);
-    this.olMap.getView().on("change:resolution", () => {
-      this.updateLegendUrl();
-    });
   },
   watch: {
     capVis: function () {
@@ -434,7 +430,6 @@ export default {
       this.olWmsLayers = this.getLayers(layers).reverse();
       this.olWmsLayers.forEach(lyr => this.olMap.addLayer(lyr))    
       this.olMap.render();
-      this.updateLegendUrl();
     },
     getLayers(layers) {
       // let styles = [this.selectedStyle.Name];
