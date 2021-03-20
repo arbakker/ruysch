@@ -33,7 +33,6 @@ let queries = [];
 
 var getRequests = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
   let url = `${cswEndpoint}?request=GetRecords&Service=CSW&Version=2.0.2&typeNames=gmd:MD_Metadata&resultType=hits&constraint=${cqlQuery}&constraintLanguage=CQL_TEXT&constraint_language_version=1.1.0`
-  console.log(url)
   let res = await fetch(url)
   if (!res.ok) return
   let data = await res.text()
@@ -51,7 +50,6 @@ var getRequests = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
   while (true) {
     let url = `${cswEndpoint}?request=GetRecords&Service=CSW&Version=2.0.2&typeNames=gmd:MD_Metadata&resultType=results&constraint=${cqlQuery}&constraintLanguage=CQL_TEXT&constraint_language_version=1.1.0&startPosition=${startPosition}&maxRecords=${pageSize}`
     let prom = fetch(url)
-    console.log(url)
     promises.push(prom)
     startPosition += pageSize
     if (startPosition > totalNumberRecords) break

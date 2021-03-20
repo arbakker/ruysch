@@ -100,7 +100,6 @@ export default {
   methods: {
     serviceTypeClicked(svcType){
       let keys = Object.keys(this.filter)
-      console.log(keys.filter(item =>  this.filter[item]).length ===1)
       if (keys.every(item=> this.filter[item])){
         keys.forEach(item=> this.filter[item] = false)
         this.filter[svcType] = true

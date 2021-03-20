@@ -175,7 +175,6 @@ export default {
     },
     getBaseUrl() {
       let url = this.record.url;
-      console.log(url)
       if (url.includes("?")) {
         url = url.split("?")[0];
       }

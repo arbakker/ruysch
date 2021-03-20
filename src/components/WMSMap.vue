@@ -26,13 +26,17 @@
       <service-info :serviceObject="serviceObject" :record="record"></service-info>
     </div>
 
-    <div id="container" class="main" v-show="!capVis && !serviceInfoVis">
-      
-      <div id="map" ref="map-root"></div>
+    <div id="container"  v-show="!capVis && !serviceInfoVis">
+       <div id="main">
+        <div id="map" ref="map-root"></div>
+        <div class="popup" ref="popup" v-show="currentCoordinate" >
+            <span class="icon-close" @click="closePopup">✖</span>
+            <feature-info-control :ftCollections="featureInfo" v-if="featureInfo.length>0"></feature-info-control>
+        </div>
+       </div>
       <div id="sidebar">
         <div id="meta" v-if="cswLoaded">
         <div class="mapControl">
-           
         <h3
           v-if="
             serviceObject &&
@@ -47,32 +51,7 @@
          </dl>
         </div>
         <div class="mapControl">
-          <layer-control  v-if="cswLoaded" :layers="layers"></layer-control>
-          <div>
-            <label>layer</label>
-          <select
-            v-model="selectedLayer"
-            v-if="cswLoaded"
-            :disabled="!layers || layers.length <= 1"
-          >
-            <option v-for="layer in layers" :value="layer" :key="layer.Name">
-              {{ layer.Title }}
-            </option>
-          </select>
-          </div>
-
-          <div>
-            <label>style</label>
-            <select
-              v-model="selectedStyle"
-              v-if="cswLoaded"
-              :disabled="!styles || styles.length <= 1"
-            >
-              <option v-for="style in styles" :value="style" :key="style.Name">
-                {{ style.Title }}
-              </option>
-            </select>
-          </div>
+          <layer-control  v-if="cswLoaded" :layers="layers" @layers-changed="layersChanged"></layer-control>
           <div>
           <button @click="zoomTo" v-if="maxScaleDenominator != ''">
              <font-awesome-icon title="Zoom to Layer" icon="search-plus" />
@@ -85,16 +64,18 @@
           </button>
         </div>
         </div>
-        <div class="mapControl" v-if="selectedLayer">
-          <layer-info :itemType="'Layer'" :item="selectedLayer"></layer-info>
-        </div>
-        <div class="mapControl" v-if="(legendUrl !== '')">
+        <div class="mapControl">
           <h3>Legend</h3>
           <div style="overflow-x:auto;">
-          <img id="legend"
-            v-if="(legendUrl !== '') | (legendUrl === undefined)"
-            v-bind:src="legendUrl"
+          
+          <div class="legend"  v-for="legend in legendUrls" :key="legend.layerTitle">
+            <h4>{{ legend.layerTitle }}</h4>
+             <img 
+            v-bind:src="legend.url"
           />
+
+          </div>
+         
           </div>
         </div>
         
@@ -113,6 +94,7 @@ import ImageLayer from "ol/layer/Image";
 import ImageWMS from "ol/source/ImageWMS";
 import WMSCapabilities from "ol/format/WMSCapabilities";
 import { get as getProjection } from "ol/proj";
+import Overlay from "ol/Overlay";
 import {FullScreen, defaults as defaultControls} from 'ol/control';
 import "ol/ol.css";
 import proj4 from "proj4";
@@ -142,26 +124,43 @@ import serviceInfo from '../lib/serviceInfo';
 import { mapFields } from "vuex-map-fields";
 
 // components
-import LayerInfo from "./LayerInfo.vue";
 import ServiceInfo from "./ServiceInfo.vue";
 import LayerControl from "./LayerControl.vue";
+import FeatureInfoControl from "./FeatureInfoControl.vue";
 
 
 export default {
-  name: "WMTSMap",
+  name: "WMSMap",
   components: {
     Prism,
     FontAwesomeIcon,
-    LayerInfo,
     ServiceInfo,
-    LayerControl
+    LayerControl,
+    FeatureInfoControl
   },
   computed: {
     ...mapFields({
       cswBaseUrl: "cswBaseUrl",
       serviceOwner: "serviceOwner",
     }),
+    legendUrls(){
+      const result = []
 
+      // loop backwards to account for layer order
+      for (let index = this.olWmsLayers.length - 1; index >= 0; index--) {
+        let wmsLyr = this.olWmsLayers[index]
+        let resolution = this.olMap.getView().getResolution();
+        let graphicUrl = wmsLyr.getSource().getLegendUrl(resolution);
+        if (graphicUrl.indexOf("&SCALE=NaN") !== -1) {
+          graphicUrl = graphicUrl.replace("&SCALE=NaN", "");
+        }
+        let capWmsLyr = wmsLyr.get("wmsLyr")
+        graphicUrl = `${graphicUrl}&SLD_VERSION=1.1.0`;
+        graphicUrl = `${graphicUrl}&STYLE=${capWmsLyr.selectedStyle.Name}`;  
+        result.push({url: graphicUrl, layerTitle: capWmsLyr.Title});
+      }
+      return result
+    },
     getCapUrl() {
       let url = this.record.url;
       if (url.includes("?")) {
@@ -193,15 +192,17 @@ export default {
     serviceInfoVis: false,
     olMap: null,
     serviceId: "",
+    overlay: null,
     cswLoaded: false,
     record: {},
     layers: [],
-    selectedLayer: {},
-    selectedStyle: {},
-    olWmsLayer: {},
+    selectedLayers: [],
+    olWmsLayers: [],
     legendUrl: "",
     serviceObject: {},
     capXml: "",
+    featureInfo: [],
+    currentCoordinate: null,
   }),
   mounted() {
     this.serviceId = this.$route.params.serviceId;
@@ -220,11 +221,21 @@ export default {
           let layers = [];
           this.layers = this.unpackLayers(parsedCap.Capability, layers);
           this.selectedLayer = this.layers[0];
+          // filter out duplicate styles, seems bug in cap parser
           this.layers.forEach((lyr) => {
             lyr.Style = lyr.Style.filter(
               (v, i, a) => a.findIndex((t) => t.Name === v.Name) === i
             );
           });
+          let parentStyles = []
+          parentStyles = this.parentStyles(parsedCap.Capability, parentStyles).flat();         
+          this.layers.map(x => 
+            x.Style = x.Style.filter(y=> 
+              ! parentStyles.includes(y)
+            )
+          )
+          
+          
 
           this.selectedStyle = this.layers[0].Style[0];
           this.cswLoaded = true;
@@ -249,8 +260,17 @@ export default {
     }
     let projString = "EPSG:28992";
 
+    this.overlay = new Overlay({
+      element: this.$refs.popup, // popup tag, in html
+      autoPan: true, // If the pop-up window is at the edge of the base image, the base image will move
+      autoPanAnimation: {
+        // Basemap moving animation
+        duration: 250,
+      },
+    });
     this.olMap = new Map({
       controls: defaultControls().extend([new FullScreen()]),
+      overlays: [this.overlay],
       target: this.$refs["map-root"],
       layers: [
         new TileLayer({
@@ -274,27 +294,95 @@ export default {
         projection: this.projection
       }),
     });
+
+    this.olMap.on('click', (evt) => {
+      const coordinate = evt.coordinate; // get coordinates
+      if (this.currentCoordinate) {
+        this.closePopup();
+        return;
+      }
+      this.currentCoordinate = coordinate;
+      var viewResolution = /** @type {number} */ (this.olMap.getView().getResolution());
+      var urls = this.olWmsLayers.map(x=> x.getSource().
+        getFeatureInfoUrl(
+        evt.coordinate,
+        viewResolution,
+         this.projection,
+        {'INFO_FORMAT': 'application/json', 'FEATURE_COUNT': '10'}
+      ))
+      urls = urls.filter(x => x !== undefined)
+      Promise.all(urls.map(u=>this.getUrl(u))).then(result =>
+           {
+        result = result.map(x => {
+          let url = x.url
+          let data = x.data
+          const params = new URLSearchParams(url)
+          let layer = params.get("LAYERS")
+          if (!layer) layer = params.get("QUERYLAYERS")
+          data.name = layer
+          return data
+        })
+        result = result.filter(x=> x.features.length>0)
+        this.featureInfo = result
+        if (result.length>0){
+          setTimeout(() => {
+        // Set the position of the pop-up window
+        // Set the timer here, otherwise the pop-up window will appear for the first time, and the base map will be off-track
+        this.overlay.setPosition(coordinate);
+        this.$refs.popup.scrollTop = 0;
+      }, 0);
+        }
+        
+      })
+    });
     setTimeout( ()=> {this.olMap.updateSize();}, 200);
     this.olMap.getView().on("change:resolution", () => {
       this.updateLegendUrl();
     });
   },
   watch: {
-    // whenever question changes, this function will run
-    selectedLayer: function () {
-      this.switchLayer();
-      this.selectedStyle = this.selectedLayer.Style[0];
-    },
-    selectedStyle: function () {
-      this.switchLayer();
-    },
     capVis: function () {
       if (this.capVis) {
-        this.olWmsLayer.render();
+        this.olWmsLayers.render();
       }
     },
   },
   methods: {
+    async getUrl(url){
+      let response = await fetch(url);
+      if (response.ok) { // if HTTP-status is 200-299
+        // get the response body (the method explained below)
+        let json = await response.json();
+        return {data: json, url: url}
+      } else {
+        alert("HTTP-Error: " + response.status);
+      }
+    },
+    genTableFromKVPs(kvps) {
+      var table = document.createElement("table");
+      table.classList.add("styled-table");
+      Object.keys(kvps).forEach(function (key) {
+        var tr = document.createElement("tr");
+        var td1 = document.createElement("td");
+        var td2 = document.createElement("td");
+        let val = kvps[key];
+        td2.innerText = val !== null ? val.toString() : "null ";
+        td1.innerText = key.toString();
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        table.appendChild(tr);
+      });
+      return table;
+    },
+    closePopup() {
+      // Set the position of the pop-up window to undefined, and clear the coordinate data
+      this.featureInfo = []
+      this.overlay.setPosition(undefined);
+      this.currentCoordinate = null;
+    },
+    layersChanged(value){
+      this.switchLayer(value)
+    },
     getTileGrid(gridIdentifier) {
       const resolutions = [
         3440.64,
@@ -340,39 +428,36 @@ export default {
         this.olMap.getView().setResolution(resolution);
       }
     },
-    updateLegendUrl() {
-      let resolution = this.olMap.getView().getResolution();
-      let graphicUrl = this.olWmsLayer.getSource().getLegendUrl(resolution);
-      if (graphicUrl.indexOf("&SCALE=NaN") !== -1) {
-        graphicUrl = graphicUrl.replace("&SCALE=NaN", "");
-      }
-      graphicUrl = `${graphicUrl}&SLD_VERSION=1.1.0`;
-      graphicUrl = `${graphicUrl}&STYLE=${this.selectedStyle.Name}`;
-      this.legendUrl = graphicUrl;
-    },
-    switchLayer() {
-      if (this.olWmsLayer) {
-        this.olMap.removeLayer(this.olWmsLayer);
-      }
-      this.olWmsLayer = this.getLayer([this.selectedLayer.Name]);
-      this.olMap.addLayer(this.olWmsLayer);
+    switchLayer(layers) {
+      this.selectedLayers = layers
+      this.olWmsLayers.forEach(lyr => this.olMap.removeLayer(lyr))    
+      this.olWmsLayers = this.getLayers(layers).reverse();
+      this.olWmsLayers.forEach(lyr => this.olMap.addLayer(lyr))    
       this.olMap.render();
       this.updateLegendUrl();
     },
-    getLayer() {
-      let layers = [this.selectedLayer.Name];
-      let styles = [this.selectedStyle.Name];
-      let wmsSource = new ImageWMS({
-        url: this.record.url.split("?")[0],
-        params: { LAYERS: layers.join(","), STYLES: styles.join(",") }, //STYLES: styleSwitcher.value
-        ratio: 1,
-        hidpi: false,
-        serverType: "mapserver",
-        projection: getProjection("EPSG:28992"),
-      });
-      return new ImageLayer({
-        source: wmsSource,
-      });
+    getLayers(layers) {
+      // let styles = [this.selectedStyle.Name];
+      // layers.reverse()
+      
+      return layers.map(lyr=>{
+          let wmsSource = new ImageWMS({
+          url: this.record.url.split("?")[0],
+          params: { LAYERS: lyr.Name, STYLES: lyr.selectedStyle.Name }, //STYLES: styleSwitcher.value STYLES: ""
+          ratio: 1,
+          hidpi: false,
+          serverType: "mapserver",
+          projection: getProjection("EPSG:28992"),
+          });  
+          let result = new ImageLayer({
+             source: wmsSource,
+          });
+          result.set("wmsLyr", lyr)
+          return result
+      })
+
+      
+     
     },
     unpackLayers(capObj, result) {
       if (!Array.isArray(capObj)) {
@@ -383,6 +468,18 @@ export default {
           this.unpackLayers(lyr.Layer, result);
         } else {
           result.push(lyr);
+        }
+      });
+      return result;
+    },
+    parentStyles(capObj, result) {
+      if (!Array.isArray(capObj)) {
+        capObj = [capObj];
+      }
+      capObj.forEach((lyr) => {
+        if ("Layer" in lyr) {
+          result.push(lyr.Style);
+          this.parentStyles(lyr.Layer, result);
         }
       });
       return result;
@@ -404,8 +501,6 @@ pre[class*="language-"] {
   overflow: auto;
 }
 
-
-
 #capbar {
   height: 4vh;
   text-align: left;
@@ -417,7 +512,39 @@ pre[class*="language-"] {
 #capbar button {
   height: 2em;
 }
-#legend{
+img.legend{
   padding: 0.2em;
+  display: block;
+}
+.popup {
+  max-width: 60vw;
+  height: 40vh;
+  position: relative;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  transform: translate(-50%, calc(-100% - 12px));
+  resize: horizontal; 
+  overflow-x:hidden;
+  overflow-y:auto; 
+  padding: 0.5em;
+}
+.popup::after {
+  display: block;
+  content: "";
+  width: 0;
+  height: 0;
+  position: absolute;
+  border: 12px solid transparent;
+  border-top-color: #fff;
+  bottom: -23px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.icon-close {
+  position:absolute;
+  top:0px;
+  right:0px;
+  cursor:pointer;
 }
 </style>

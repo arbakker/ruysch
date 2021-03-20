@@ -402,8 +402,6 @@ export default {
           return response.json();
         })
         .then((data) => {
-          let ftProj = 'EPSG:28992'
-          console.log(ftProj)
           var vectorSource = new VectorSource({
             features: new GeoJSON({
               defaultDataProjection: 'EPSG:28992',

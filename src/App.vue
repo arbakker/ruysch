@@ -85,25 +85,30 @@ margin: 0px;
   margin: 0.2em;
 }
 
+button:not([disabled]){
+  border:0.15em solid #CCCCCC;
+  color:#000000;
+  background-color:#CCCCCC;
+}
+
 button{
   display: inline-block;
   padding:0.2em 1.45em;
   margin:0.1em;
-  border:0.15em solid #CCCCCC;
   box-sizing: border-box;
   text-decoration:none;
   font-family:'Segoe UI','Roboto',sans-serif;
   font-weight:400;
-  color:#000000;
-  background-color:#CCCCCC;
   text-align:center;
   position:relative;
 }
 
-button:hover{
+
+
+button:active:hover:not([disabled]){
 border-color:#7a7a7a;
 }
-button:active{
+button:active:not([disabled]){
 background-color:#999999;
 }
 
