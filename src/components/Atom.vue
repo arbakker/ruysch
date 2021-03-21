@@ -174,10 +174,7 @@ export default {
 </script>
 <style scoped>
 
-a.atom-feed {
-  text-decoration: none;
-  color: #2c3e50;
-}
+
 
 #meta {
   width: 100%;
@@ -189,7 +186,7 @@ a.atom-feed {
 }
 #mapControls {
   flex-basis: 20%;
-  height: 93vh;
+  height: 100%;
   overflow: auto;
   text-align: left;
 }

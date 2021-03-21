@@ -425,7 +425,7 @@ pre[class*="language-"] {
   overflow: auto;
 }
 #container {
-  height: 93vh;
+  height: 100%;
   display: flex;
   flex: 0 0 100%;
 }

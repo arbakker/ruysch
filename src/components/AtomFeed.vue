@@ -1,7 +1,5 @@
 <template>
   <div class="content" v-if="feedData.feed">
-    
-
     <div class="entrywrapper" v-show="!xmlVisible">
       <div class="entry feedTitleContainer">
         <h1 class="feedTitleText" v-if="isParent">
@@ -58,7 +56,7 @@
           <tr>
             <td>ATOM Feed URL</td>
             <td>
-              <a :href="feedData.feed.id._text" title="ATOM Feed URL">URL</a>
+              <a  :href="feedData.feed.id._text" title="ATOM Feed URL">URL</a>
             </td>
           </tr>
           <tr>
@@ -79,6 +77,7 @@
             <h3 class="feedEntryTitle" v-if="!hasDownloads">
               <router-link
                 tag="a"
+                class="atom-feed"
                 :to="{
                   name: 'INSPIRE Atom',
                   params: {
@@ -230,13 +229,6 @@ export default {
 
 .entry {
   position: relative;
-  /* border: 1px solid #eee; */
-  /* border-radius: 4px; */
-  /* box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1); */
-  /* margin: 2em 0;
-  margin-right: 0px;
-  margin-bottom: 1em;
-  margin-left: 0px; */
   margin-top: 1em;
   padding-bottom: 1em;
   
@@ -245,5 +237,13 @@ export default {
 }
 .feedTitleText{
   margin:unset;
+}
+
+a:not(.btn) {
+  text-decoration: underline;
+  color: var(--primary-color);
+}
+a:not(.btn):hover {
+   color: var(--secondary-color);
 }
 </style>
