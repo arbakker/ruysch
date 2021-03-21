@@ -23,6 +23,6 @@ li{
     border-bottom: 1px solid #ddd;
 }
 li:hover{
-    background-color: var(--secondary-color); 
+    background-color: rgba(var(--secondary-color-r), var(--secondary-color-g), var(--secondary-color-b), 0.4);
 }
-</style>
+</style>  

@@ -28,7 +28,7 @@ import Atom from './components/Atom.vue'
 // `Vue.extend()`, or just a component options object.
 // We'll talk about nested routes later.
 const routes = [
-  { path: '/home', component: Search },
+  { path: '/home/:endpoint?', component: Search },
   { path: '/wms-service/:serviceId', component: WMSMap, name: 'OGC:WMS', },
   { path: '/wfs-service/:serviceId', component: WFSMap, name: 'OGC:WFS', },
   { path: '/wmts-service/:serviceId', component: WMTSMap, name: 'OGC:WMTS', },

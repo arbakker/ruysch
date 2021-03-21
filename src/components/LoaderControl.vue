@@ -30,7 +30,7 @@ export default {
 
 .loader {
   border: 16px solid #f3f3f3; /* Light grey */
-  border-top: 16px solid var(--primary-color); /* Blue */
+  border-top: 16px solid var(--secondary-color); /* Blue */
   border-radius: 50%;
   width: 60px;
   height: 60px;

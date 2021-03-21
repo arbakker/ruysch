@@ -29,28 +29,16 @@ export default {
       return {
         "--primary-color": config.primaryColor,
         "--secondary-color": config.secondaryColor,
+        "--secondary-color-r": config.secondaryColorR,
+        "--secondary-color-g": config.secondaryColorG,
+        "--secondary-color-b": config.secondaryColorB,
       };
     },
   },
   methods: {
-    hexToRGB(hex, alpha) {
-      var r = parseInt(hex.slice(1, 3), 16),
-        g = parseInt(hex.slice(3, 5), 16),
-        b = parseInt(hex.slice(5, 7), 16);
-      if (alpha) {
-        return "rgba(" + r + ", " + g + ", " + b + ", " + alpha + ")";
-      } else {
-        return "rgb(" + r + ", " + g + ", " + b + ")";
-      }
-    },
+    
   },
   mounted() {
-
-    // style openlayers buttons, did not find a way to add alpha channel to hex color 
-    // on the css var --secondary-color, so for now in js
-    let rgbaColor = this.hexToRGB(config.secondaryColor, 0.5)
-    let sheet = window.document.styleSheets[0];
-    sheet.insertRule(`.ol-control button { background-color: ${rgbaColor} !important; }`, sheet.cssRules.length);
   },
 };
 </script>
@@ -238,6 +226,6 @@ footer{
   background-color:#2c3e50;
   widows: 100%;
 }
-
+.ol-control button { background-color: rgba(var(--secondary-color-r), var(--secondary-color-g), var(--secondary-color-b), 0.5) !important; }
 
 </style>

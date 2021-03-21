@@ -13,7 +13,7 @@
     <div id="header">
       <loader-control
         v-if="!cswLoaded"
-        :message="'Loading records from ' + cswBaseUrlHost"
+        :message="'Loading service records from ' + cswBaseUrlHost + ' of ' + serviceOwner"
       ></loader-control>
       <div v-if="cswLoaded">
         <input
@@ -128,8 +128,11 @@ export default {
       }
     },
     search() {
-      let searchRecords = this.searchFilter();
-      this.displayItems = this.serviceTypeFilter(this.filter, searchRecords);
+      setTimeout(() => {
+        let searchRecords = this.searchFilter();
+        this.displayItems = this.serviceTypeFilter(this.filter, searchRecords);
+      }, 300);
+      
     },
     serviceTypeFilter(val, records) {
       return records.filter(function (service) {
@@ -192,6 +195,11 @@ export default {
       let cswBaseUrlQueryParam = this.$route.query.cswBaseUrl;
       if (cswBaseUrlQueryParam) {
         this.cswBaseUrl = cswBaseUrlQueryParam;
+      }
+
+      let serviceOwnerUrlQueryParam = this.$route.query.serviceOwner;
+      if (serviceOwnerUrlQueryParam) {
+        this.serviceOwner = serviceOwnerUrlQueryParam;
       }
 
       let queries = [];
