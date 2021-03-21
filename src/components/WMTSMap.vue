@@ -379,7 +379,6 @@ pre[class*="language-"] {
   text-align: left;
   padding: 0px;
   margin: 0px;
-  height: 89vh;
   overflow: auto;
 }
 

@@ -348,7 +348,9 @@ export default {
     },
     capVis: function () {
       if (this.capVis) {
-        this.olWmsLayers.render();
+       setTimeout(() => {
+          this.olMap.updateSize();
+        }, 200);
       }
     },
   },
@@ -495,7 +497,6 @@ pre[class*="language-"] {
   text-align: left;
   padding: 0px;
   margin: 0px;
-  height: 89vh;
   overflow: auto;
 }
 
