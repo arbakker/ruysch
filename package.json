@@ -1,11 +1,14 @@
 {
-  "name": "pdok-services",
-  "version": "0.1.0",
+  "name": "ruysch",
+  "version": "0.1.0-alpha",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
+  },
+  "gitHooks": {
+    "pre-commit": "hooks/pre-commit"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.32",
