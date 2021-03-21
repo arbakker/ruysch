@@ -15,8 +15,8 @@ The following service-types are supported:
 
 Application can be customized (colors, cswEndpoint en serviceOwner) trough [`config.js`](https://github.com/arbakker/ruysch/blob/main/src/config.js) but also though the url:
 
-- change the CSW endpoint: http://arbakker.github.io/ruysch/#/home?cswBaseUrl=https%3A%2F%2Fngr.acceptatie.nationaalgeoregister.nl%2Fgeonetwork%2Fsrv%2Fdut%2Fcsw
-- change the service owner: http://arbakker.github.io/ruysch/#/home?serviceOwner=Rijkswaterstaat
+- change the CSW endpoint: `http://arbakker.github.io/ruysch/#/home?cswBaseUrl=https%3A%2F%2Fngr.acceptatie.nationaalgeoregister.nl%2Fgeonetwork%2Fsrv%2Fdut%2Fcsw`
+- change the service owner: `http://arbakker.github.io/ruysch/#/home?serviceOwner=Rijkswaterstaat`
 
 Named after [Johannes Ruysch](https://en.wikipedia.org/wiki/Johannes_Ruysch), a Dutch cartographer. 
 
