@@ -75,8 +75,9 @@ export default {
 
   ul.tabs__header > li.tab__selected {
     font-weight: bold;
-    /* border-radius: 10px 10px 0 0;
-    border-bottom: 8px solid transparent; */
+    background-color: var(--secondary-color);
+    color:white;
+
   }
   .tabs__light li {
     background-color: #ddd;

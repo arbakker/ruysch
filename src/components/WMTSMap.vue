@@ -33,16 +33,24 @@
         <div class="mapControl">
           <h3 v-if="serviceObject && serviceObject.title">
             {{ serviceObject.title }}
+              {{ !serviceObject.title.includes("WMTS") && !serviceObject.title.includes("Web Map Tile Service") ? "- WMTS" : "" }}
           </h3>
-          <dl>
-            <dt>service type</dt>
-            <dd>OGC:WMTS</dd>
-          </dl>
+           <div>
+            <button @click="serviceInfoVis = true">
+              <font-awesome-icon title="Show service info" icon="info-circle" />
+            </button>
+            <button @click="capVis = true">
+              <font-awesome-icon
+                title="Show capabilities document"
+                icon="file-code"
+              />
+            </button>
+          </div>
         </div>
         <div class="mapControl">
           <div>
-            <label>layer</label>
             <select
+              title="Select layer to add to map"
               v-model="selectedLayer"
               v-if="cswLoaded"
               :disabled="!layers || layers.length <= 1"
@@ -55,27 +63,6 @@
                 {{ layer.identifier }}
               </option>
             </select>
-          </div>
-          <div>
-            <button @click="serviceInfoVis = true">
-              <font-awesome-icon title="Show service info" icon="info-circle" />
-            </button>
-            <button @click="capVis = true">
-              <font-awesome-icon
-                title="Show capabilities document"
-                icon="file-code"
-              />
-            </button>
-          </div>
-        </div>
-        <div class="mapControl" v-if="legendUrl !== ''">
-          <h3>Legend</h3>
-          <div style="overflow-x: auto">
-            <img
-              id="legend"
-              v-if="(legendUrl !== '') | (legendUrl === undefined)"
-              v-bind:src="legendUrl"
-            />
           </div>
         </div>
         <div class="mapControl" v-if="selectedLayer">
@@ -203,7 +190,6 @@ export default {
     layers: [],
     selectedLayer: {},
     olWmsLayer: {},
-    legendUrl: "",
     serviceObject: {},
     capXml: "",
     projection: null,
@@ -270,7 +256,6 @@ export default {
         new TileLayer({
           opacity: 0.4,
           source: new WMTS({
-            attributions: "PDOK",
             url: "https://geodata.nationaalgeoregister.nl/tiles/service/wmts",
             layer: "brtachtergrondkaart",
             matrixSet: projString,
@@ -375,7 +360,6 @@ export default {
       return new TileLayer({
         opacity: 1,
         source: new WMTS({
-          attributions: "PDOK",
           url: this.getBaseUrl,
           layer: this.selectedLayer.identifier,
           matrixSet: tileMatrixId,

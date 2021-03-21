@@ -1,13 +1,14 @@
   <template>
   <div>
-    <atom-feed
+    <loader-control v-if="!atomLoaded" :message="'Processing Atom Feed - ' + record.url"></loader-control>
+    <atom-feed v-if="atomLoaded"
       :feedData="feedData"
       :feedXml="feedXml"
       :showDataFeed="showDataFeed"
       :showParent="true"
       :isParent="isParent"
     ></atom-feed>
-    <atom-feed
+    <atom-feed 
       v-if="loadChildFeed"
       :feedData="childFeedData"
       :feedXml="childFeedXml"
@@ -30,6 +31,8 @@ import { JSONPath } from "jsonpath-plus";
 import { library } from "@fortawesome/fontawesome-svg-core";
 // import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import AtomFeed from "./AtomFeed.vue";
+import LoaderControl from "./LoaderControl.vue";
+
 
 import {
   faTimes,
@@ -43,6 +46,7 @@ export default {
   name: "Atom",
   components: {
     AtomFeed,
+    LoaderControl
   },
   computed: {
     ...mapFields({
@@ -326,4 +330,6 @@ h3 > a {
   right: 1em;
   z-index: 200;
 }
+
+
 </style>

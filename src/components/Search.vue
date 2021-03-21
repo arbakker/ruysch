@@ -1,49 +1,63 @@
 <template>
   <div class="main">
+    <a class="gh-banner" href="https://github.com/arbakker/ruysch"
+      ><img
+        loading="lazy"
+        width="149"
+        height="149"
+        src="https://github.blog/wp-content/uploads/2008/12/forkme_right_darkblue_121621.png?resize=149%2C149"
+        class="attachment-full size-full"
+        alt="Fork me on GitHub"
+        data-recalc-dims="1"
+    /></a>
     <div id="header">
-    <div id="loader" v-if="!cswLoaded">
-      <div class="loader"></div>
-      <p>Loading records from {{ cswBaseUrlHost }}</p>
-    </div>
-    <div v-if="cswLoaded">
-      <input
-        type="text"
-        v-model="query"
-        @keydown="search"
-        :placeholder="
-          'search in ' + records.length + ' services from ' + serviceOwner
-        "
-      />
-    
-      <p><span 
-        v-bind:class="{ selected:  filter.ATOM}"
-        v-on:click="serviceTypeClicked('ATOM')"
-        class="serviceTypeSelector">
-        ATOM
-        </span>
-      <span 
-        v-bind:class="{ selected:  filter.WFS}"
-        v-on:click="serviceTypeClicked('WFS')"
-        class="serviceTypeSelector">
-        WFS
-        </span>
-      <span 
-        v-bind:class="{ selected:  filter.WMS}"
-        v-on:click="serviceTypeClicked('WMS')"
-        class="serviceTypeSelector">
-        WMS
-        </span>
-      <span 
-        v-bind:class="{ selected:  filter.WMTS}"
-        v-on:click="serviceTypeClicked('WMTS')"
-        class="serviceTypeSelector">
-        WMTS
-        </span>
-      </p>
-      
-      <p id="resultSummrary">
-        {{ displayItems.length }} results in {{ cswBaseUrlHost }}
-      </p>
+      <loader-control
+        v-if="!cswLoaded"
+        :message="'Loading records from ' + cswBaseUrlHost"
+      ></loader-control>
+      <div v-if="cswLoaded">
+        <input
+          type="text"
+          v-model="query"
+          @keydown="search"
+          :placeholder="
+            'search in ' + records.length + ' services from ' + serviceOwner
+          "
+        />
+        <p>
+          <span
+            v-bind:class="{ selected: filter.ATOM }"
+            v-on:click="serviceTypeClicked('ATOM')"
+            class="serviceTypeSelector"
+          >
+            ATOM
+          </span>
+          <span
+            v-bind:class="{ selected: filter.WFS }"
+            v-on:click="serviceTypeClicked('WFS')"
+            class="serviceTypeSelector"
+          >
+            WFS
+          </span>
+          <span
+            v-bind:class="{ selected: filter.WMS }"
+            v-on:click="serviceTypeClicked('WMS')"
+            class="serviceTypeSelector"
+          >
+            WMS
+          </span>
+          <span
+            v-bind:class="{ selected: filter.WMTS }"
+            v-on:click="serviceTypeClicked('WMTS')"
+            class="serviceTypeSelector"
+          >
+            WMTS
+          </span>
+        </p>
+
+        <p id="resultSummrary">
+          {{ displayItems.length }} results in {{ cswBaseUrlHost }}
+        </p>
       </div>
       <div id="results">
         <ul>
@@ -61,22 +75,23 @@ import ListItem from "./ListItem.vue";
 import Fuse from "fuse.js";
 import { mapFields } from "vuex-map-fields";
 import csw from "../lib/csw";
-import pdokServices from "../assets/pdok-services.json";
-
-import { serviceTypes, cachedUrl } from '../config.js'
+import pdokServices from "../assets/cached-services.json";
+import LoaderControl from "./LoaderControl.vue";
+import { serviceTypes, cachedConfig } from "../config.js";
 
 export default {
   name: "Search",
   components: {
     ListItem,
+    LoaderControl,
   },
-  watch:{
+  watch: {
     filter: {
-     handler(){
-       this.search()
-     },
-     deep: true
-  }
+      handler() {
+        this.search();
+      },
+      deep: true,
+    },
   },
   data: () => ({
     serviceTypes: "",
@@ -98,32 +113,35 @@ export default {
     },
   },
   methods: {
-    serviceTypeClicked(svcType){
-      let keys = Object.keys(this.filter)
-      if (keys.every(item=> this.filter[item])){
-        keys.forEach(item=> this.filter[item] = false)
-        this.filter[svcType] = true
-      }else if (keys.filter(item =>  this.filter[item]).length ===1 && this.filter[svcType]) 
-        keys.forEach(item=> this.filter[item] = true)
-      else{
-        this.filter[svcType] = !this.filter[svcType]
+    serviceTypeClicked(svcType) {
+      let keys = Object.keys(this.filter);
+      if (keys.every((item) => this.filter[item])) {
+        keys.forEach((item) => (this.filter[item] = false));
+        this.filter[svcType] = true;
+      } else if (
+        keys.filter((item) => this.filter[item]).length === 1 &&
+        this.filter[svcType]
+      )
+        keys.forEach((item) => (this.filter[item] = true));
+      else {
+        this.filter[svcType] = !this.filter[svcType];
       }
-
-
     },
-    search(){
-      let searchRecords = this.searchFilter()
-      this.displayItems  = this.serviceTypeFilter(this.filter, searchRecords)
+    search() {
+      let searchRecords = this.searchFilter();
+      this.displayItems = this.serviceTypeFilter(this.filter, searchRecords);
     },
-    serviceTypeFilter(val, records){
+    serviceTypeFilter(val, records) {
       return records.filter(function (service) {
-          if ((service.serviceType === "OGC:WMS" && val.WMS)||
-          (service.serviceType === "OGC:WFS" && val.WFS)||
-          (service.serviceType === "OGC:WMTS" && val.WMTS)||
+        if (
+          (service.serviceType === "OGC:WMS" && val.WMS) ||
+          (service.serviceType === "OGC:WFS" && val.WFS) ||
+          (service.serviceType === "OGC:WMTS" && val.WMTS) ||
           (service.serviceType === "INSPIRE Atom" && val.ATOM)
-          ){
-            return service
-          }})
+        ) {
+          return service;
+        }
+      });
     },
     compare(a, b) {
       if (a.title < b.title) {
@@ -142,14 +160,16 @@ export default {
     },
     searchFilter() {
       if (this.query === "") {
-        return this.records
+        return this.records;
       }
       const searchResult = this.fuse.search(this.query, {});
-      return  searchResult
-        .map(({ item }) => item)
-        .sort(this.compare)
+      return searchResult.map(({ item }) => item).sort(this.compare);
     },
     init(result) {
+      // filter out duplicate records, ngr returns duplicated records occasionally
+      result = result.filter(
+        (v, i, a) => a.findIndex((t) => t.id === v.id) === i
+      );
       this.records = result;
       this.displayItems = result;
       const options = {
@@ -163,7 +183,7 @@ export default {
       };
       this.fuse = new Fuse(this.records, options);
       this.cswLoaded = true;
-      this.search()
+      this.search();
     },
   },
 
@@ -177,7 +197,10 @@ export default {
       let queries = [];
       this.serviceTypes = serviceTypes.join(", ");
 
-      if (cachedUrl === this.cswBaseUrl) {
+      if (
+        cachedConfig.url === this.cswBaseUrl &&
+        cachedConfig.owner === this.serviceOwner
+      ) {
         this.init(pdokServices);
       } else {
         for (let i = 0; i < serviceTypes.length; i++) {
@@ -198,7 +221,7 @@ export default {
 
           let result = [].concat.apply([], newValues);
           result.sort(this.compare);
-          this.init(result)
+          this.init(result);
         });
       }
     }
@@ -206,9 +229,7 @@ export default {
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-
 input {
   width: 20em;
   border: #ddd solid 1px;
@@ -224,54 +245,36 @@ ul {
   font-style: italic;
 }
 
-.loader {
-  border: 16px solid #f3f3f3; /* Light grey */
-  border-top: 16px solid #373d62; /* Blue */
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-#loader {
-  margin: 2em;
-}
-.serviceTypeSelector{
-  margin-left: .4em;
-	border-radius: 34px;
-	background-color: #fff;
-	padding: .3em;
-	color: #7b7b7b;
-	border: 1px solid #a0a0a0;
+.serviceTypeSelector {
+  margin-left: 0.4em;
+  border-radius: 34px;
+  background-color: #fff;
+  padding: 0.3em 0.6em 0.3em 0.6em;
+  color: #7b7b7b;
+  border: 1px solid #a0a0a0;
   cursor: default;
 }
 
 .serviceTypeSelector.selected {
-	background-color: #2196f3;
-	color: #fff;
-	border: 1px solid #2196f3;
+  background-color: var(--secondary-color);
+  color: #fff;
+  border: 1px solid var(--secondary-color);
 }
 
-.serviceTypeSelector:hover{
-  font-weight:600;
+.serviceTypeSelector:hover {
+  font-weight: 600;
 }
 
-#results{
-  margin:1em;
+#results {
+  margin: 1em;
 }
-#header{
-  margin:1em;
+#header {
+  margin: 1em;
 }
 
-
-
-
+.gh-banner {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
 </style>

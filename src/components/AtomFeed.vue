@@ -1,5 +1,7 @@
 <template>
   <div class="content" v-if="feedData.feed">
+    
+
     <div class="entrywrapper" v-show="!xmlVisible">
       <div class="entry feedTitleContainer">
         <h1 class="feedTitleText" v-if="isParent">
@@ -195,15 +197,11 @@ export default {
   },
   data: () => ({
     capVis: false,
-    capXml: "",
-    xslt: "",
     dataFeedId: "",
     atomLoaded: false,
     record: {},
     serviceObject: {},
     dataFeedObjects: [],
-    feedHtml: "",
-    isVisible: {},
     xmlVisible: false,
   }),
   created() {},

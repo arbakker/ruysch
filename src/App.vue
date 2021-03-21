@@ -1,8 +1,8 @@
 <template>
-  <div id="app">
+  <div id="app" :style="cssVars">
     <div class="nav">
       <router-link to="/home"
-        ><img class="nav-image" alt="PDOK logo" src="./assets/pdok-logo.png"
+        ><img class="nav-image" alt="PDOK logo" :src="logo"
       /></router-link>
     </div>
     <router-view></router-view>
@@ -11,25 +11,55 @@
 
 <script>
 import { mapFields } from "vuex-map-fields";
+import config from "./config";
 
 export default {
   name: "App",
   components: {},
+  data: function () {
+    return {
+      logo: `${config.logo}`,
+    };
+  },
   computed: {
     ...mapFields({
       cswBaseUrl: "cswBaseUrl",
     }),
+    cssVars() {
+      return {
+        "--primary-color": config.primaryColor,
+        "--secondary-color": config.secondaryColor,
+      };
+    },
   },
-  mounted() {},
+  methods: {
+    hexToRGB(hex, alpha) {
+      var r = parseInt(hex.slice(1, 3), 16),
+        g = parseInt(hex.slice(3, 5), 16),
+        b = parseInt(hex.slice(5, 7), 16);
+      if (alpha) {
+        return "rgba(" + r + ", " + g + ", " + b + ", " + alpha + ")";
+      } else {
+        return "rgb(" + r + ", " + g + ", " + b + ")";
+      }
+    },
+  },
+  mounted() {
+
+    // style openlayers buttons, did not find a way to add alpha channel to hex color 
+    // on the css var --secondary-color, so for now in js
+    let rgbaColor = this.hexToRGB(config.secondaryColor, 0.5)
+    let sheet = window.document.styleSheets[0];
+    sheet.insertRule(`.ol-control button { background-color: ${rgbaColor} !important; }`, sheet.cssRules.length);
+  },
 };
 </script>
 
 <style>
-
 :root {
-    --nav-height: 3em;
-    --sidebar-width: 35%;
-  }
+  --nav-height: 3em;
+  --sidebar-width: 35%;
+}
 
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
@@ -37,14 +67,14 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
 }
-.nav{
+.nav {
   height: var(--nav-height);
-  background-color:  #1a1e4f;
+  background-color: var(--primary-color);
   position: relative;
-  vertical-align:center;
+  vertical-align: center;
 }
 
-#container{
+#container {
   height: calc(100vh - var(--nav-height));
 }
 .main {
@@ -52,75 +82,92 @@ export default {
   overflow-y: auto;
 }
 
-#comp-root{
-  height:100%;
+#comp-root {
+  height: 100%;
 }
-#map{
+#map {
   flex: calc(100% - var(--sidebar-width));
   height: calc(100vh - var(--nav-height));
 }
 #sidebar {
   flex: var(--sidebar-width);
-  flex-grow: 0;     
-  flex-shrink: 0; 
+  flex-grow: 0;
+  flex-shrink: 0;
   padding: 1em;
-  box-sizing: border-box; 
+  box-sizing: border-box;
   -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-  -moz-box-sizing: border-box;    
+  -moz-box-sizing: border-box;
   overflow-y: auto;
   height: calc(100vh - var(--nav-height));
 }
-body{
-padding: 0px;
-margin: 0px;
+body {
+  padding: 0px;
+  margin: 0px;
 }
-.nav-image{
-  margin:1em;
+.nav-image {
+  margin: 1em;
   height: 20px;
-  width: 52px;
 }
 
-.nav a{
-  color:white;
+.nav a {
+  color: white;
   margin: 0.2em;
 }
 
-button:not([disabled]){
-  border:0.15em solid #CCCCCC;
-  color:#000000;
-  background-color:#CCCCCC;
+.btn,
+button {
+  border: 0.15em solid #cccccc;
+  color: #000000;
+  background-color: #cccccc;
 }
-
-button{
+button,
+.btn {
   display: inline-block;
-  padding:0.2em 1.45em;
-  margin:0.1em;
+  padding: 0.2em 1.45em;
   box-sizing: border-box;
-  text-decoration:none;
-  font-family:'Segoe UI','Roboto',sans-serif;
-  font-weight:400;
-  text-align:center;
-  position:relative;
+  text-decoration: none;
+  font-family: "Segoe UI", "Roboto", sans-serif;
+  font-weight: 400;
+  text-align: center;
+  position: relative;
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+  margin-top: 0;
+  margin-bottom: 0;
+  cursor: pointer;
 }
 
-
-
-button:active:hover:not([disabled]){
-border-color:#7a7a7a;
+.btn.primary {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: white;
 }
-button:active:not([disabled]){
-background-color:#999999;
+.btn:hover:not([disabled]),
+button:hover:not([disabled]) {
+  filter: brightness(85%);
 }
 
-@media all and (max-width:30em){
-  button{
-    display:block;
-    margin:0.2em auto;
- }
+button:active:hover:not([disabled]) {
+  border-color: #7a7a7a;
 }
+button:active:not([disabled]) {
+  background-color: #999999;
+}
+.btn[disabled="disabled"],
+button[disabled="disabled"] {
+  color: dimgray;
+  cursor: default;
+}
+
+@media all and (max-width: 30em) {
+  button {
+    display: block;
+    margin: 0.2em auto;
+  }
+} 
 
 #container {
-  height:100%;
+  height: 100%;
   display: flex;
   flex: 1;
   flex-grow: initial;
@@ -137,6 +184,7 @@ background-color:#999999;
   /* margin-bottom: 1em; */
   border-bottom: lightgrey solid 1px;
   margin-bottom: 1em;
+  padding-bottom: 0.1em;
 }
 .mapControl div {
   margin-bottom: 0.5em;
@@ -148,11 +196,12 @@ background-color:#999999;
 label {
   margin-right: 0.5em;
 }
-h3{
-  margin:unset;
-  margin-bottom: 0.5em;}
+h3 {
+  margin: unset;
+  margin-bottom: 0.5em;
+}
 
-  dt {
+dt {
   font-weight: bold;
   font-style: italic;
 }
@@ -161,23 +210,34 @@ dd {
   margin-left: 0.2em;
   padding: 0 0 0.5em 0;
 }
-dl{
-    margin:unset;
+dl {
+  margin: unset;
 }
- .styled-table  tr:nth-child(even) {
-    background-color: #f2f2f2;
-  }
-  .styled-table  {
-    table-layout: auto;
-    border-collapse: separate;
-    white-space: nowrap;
-    margin: 1em;
-    border-spacing: 0.2em;
-  }
-  .styled-table td{
-    padding: 0.3em;
-  }
-  .styled-table tr td:nth-child(1){
-    font-weight: 600;
-  }
+.styled-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+.styled-table {
+  table-layout: auto;
+  border-collapse: separate;
+  white-space: nowrap;
+  margin: 1em;
+  border-spacing: 0.2em;
+}
+.styled-table td {
+  padding: 0.3em;
+}
+.styled-table tr td:nth-child(1) {
+  font-weight: 600;
+}
+.row {
+  display: flex;
+  flex-direction: row;
+}
+footer{
+  height:10em;
+  background-color:#2c3e50;
+  widows: 100%;
+}
+
+
 </style>

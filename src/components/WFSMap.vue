@@ -43,27 +43,19 @@
             serviceObject.title
           "
         >
-          {{ serviceObject.title }}
+            {{ serviceObject.title }} {{ !serviceObject.title.includes("WFS")? '- WFS': ''}}
         </h3>
-         <dl>
-          <dt>service type</dt>
-          <dd>OGC:WFS</dd>
-         </dl>
-        </div>
-        <div class="mapControl">
-          <h3></h3>
-          <div>
-            <button @click="serviceInfoVis = true">
+        <div>
+          <button @click="serviceInfoVis = true">
               <font-awesome-icon title="Show service info" icon="info-circle" />
             </button>
             <button @click="capVis = true" title="Show capabilities document">
               <font-awesome-icon icon="file-code" />
             </button>
-            <button @click="loadFeatures()" title="Load features on map">
-              <font-awesome-icon icon="download" />
-            </button>
-          </div>
-          <div>
+        </div>
+        </div>
+        <div class="mapControl">
+          <div class="row">
             <select
               v-model="selectedFeature"
               :disabled="features.length <= 1"
@@ -73,13 +65,15 @@
                 {{ ft.Title }}
               </option>
             </select>
+             <button @click="loadFeatures()" title="Load features on map">
+              <font-awesome-icon icon="download" />
+            </button>
           </div>
           <div>
             <label>maxFeatures</label
-            ><input type="number" v-model="maxFeatures" />
+            ><input title="Set maximum number of features to retrieve" type="number" v-model="maxFeatures" />
           </div>
         </div>
-
         <div class="mapControl">
           <layer-info
             :itemType="'FeatureType'"
@@ -185,7 +179,7 @@ export default {
     features: [],
     selectedFeature: {},
     serviceObject: {},
-    maxFeatures: 1000,
+    maxFeatures: 100,
     capXml: "",
     overlay: null,
     featureInfo: "",
@@ -259,7 +253,6 @@ export default {
       layers: [
         new TileLayer({
           source: new WMTS({
-            attributions: "PDOK",
             url: "https://geodata.nationaalgeoregister.nl/tiles/service/wmts",
             layer: "brtachtergrondkaartgrijs",
             matrixSet: projString,
