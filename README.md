@@ -1,5 +1,5 @@
 ![Build and Deploy](https://github.com/arbakker/pdok-services/workflows/Build%20and%20Deploy/badge.svg)
-![Version](https://img.shields.io/badge/version-0.1.0-alpha-yellow)
+![Version](https://img.shields.io/badge/version-0.1.0%2Dalpha-yellow)
 # ruysch
 
 ruysch is a CSW web-client specifically for exploring webservices. The deployment running at [arbakker.github.io/ruysch ](arbakker.github.io/ruysch )is configured to expose all services hosted by [PDOK](https://www.pdok.nl/) registered in the [nationaalgeoregister.nl](https://nationaalgeoregister.nl/).

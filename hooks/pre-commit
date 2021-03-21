@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
-version=$(jq -r ".version" package.json)
+version=$(jq -r ".version" package.json | sed "s|-|%2D|g")
 sed  -i "s|https://img.shields.io/badge/version-.*-yellow|https://img.shields.io/badge/version-$version-yellow|g" README.md
+
+
