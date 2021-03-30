@@ -309,7 +309,7 @@ export default {
         0.105,
         0.05025,
       ];
-      const matrixIds = new Array(15);
+      let matrixIds = new Array(15);
       if (gridIdentifier === "EPSG:28992") {
         for (let i = 0; i < 15; ++i) {
           matrixIds[i] = i;
@@ -319,6 +319,10 @@ export default {
           matrixIds[i] = i;
         }
       }
+      if (gridIdentifier.startsWith('EPSG:28992')){
+        matrixIds = matrixIds.map(x=> `EPSG:28992:${x}`)
+      }
+
       return new WMTSTileGrid({
         origin: getTopLeft(this.projectionExtent),
         resolutions: resolutions,
