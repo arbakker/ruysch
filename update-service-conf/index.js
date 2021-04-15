@@ -11,7 +11,7 @@ const DC_NS_URL = "http://purl.org/dc/elements/1.1/"
 const DCT_NS_URL = "http://purl.org/dc/terms/"
 const GMD_NS_URL = "http://www.isotc211.org/2005/gmd"
 const OUTPUT_DIR = "../src/assets"
-const OUTPUT_FILE = `${OUTPUT_DIR}/pdok-services.json`;
+const OUTPUT_FILE = `${OUTPUT_DIR}/cached-services.json`;
 
 function getCQLQuery(serviceOwner, protocol) {
   return `type=%27service%27%20AND%20organisationName=%27${serviceOwner.replace(
