@@ -63,10 +63,14 @@ var getCSWRecords = async (cswEndpoint, cqlQuery, maxRecords = 0) => {
 
 function getServiceUrl(xmlDoc){
     let onlineResNode =  xmlDoc.querySelectorAll("connectPoint CI_OnlineResource linkage URL")
+    let url = ""
     if (onlineResNode && onlineResNode.length > 0){
-        return onlineResNode[0].textContent
+        url = onlineResNode[0].textContent
     }
-    return ""
+    if( url.endsWith("/WMTSCapabilities.xml")){
+        url = url.replace("/WMTSCapabilities.xml", "")
+    }    
+    return url
 }
 
 function getServiceProtocol(xmlDoc){

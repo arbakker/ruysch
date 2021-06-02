@@ -102,7 +102,10 @@ var getCSWRecords = async (cswEndpoint, cqlQuery, includeServiceUrls, maxRecords
            const xmlDoc = parser.parseFromString(responseBody, "text/xml")
            const distInfoNode = xmlDoc.getElementsByTagNameNS(GMD_NS_URL, "distributionInfo")[0]
            const olResourceNode = distInfoNode.getElementsByTagNameNS(GMD_NS_URL, "CI_OnlineResource")[0]
-           const urlText = olResourceNode.getElementsByTagNameNS(GMD_NS_URL, "URL")[0].textContent
+           let urlText = olResourceNode.getElementsByTagNameNS(GMD_NS_URL, "URL")[0].textContent
+           if (urlText.endsWith("/WMTSCapabilities.xml")){
+              urlText = urlText.replace("/WMTSCapabilities.xml", "")
+           }
            return urlText
         }).catch(error => {
           throw(error);
