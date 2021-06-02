@@ -41,9 +41,11 @@ export default {
   },
   methods: {
      getService(protocol){
+      // TODO: manage lookup table in a more central place
       let lookup = {
         'OGC:WMS': "WMS",
-        'OGC:WFS': "WFS"
+        'OGC:WFS': "WFS",
+        'OGC:WMTS': "WMTS"
       }
       return lookup[protocol]
     }
