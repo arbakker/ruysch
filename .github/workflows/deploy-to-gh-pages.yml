@@ -1,9 +1,10 @@
 name: Build and Deploy
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Update Service Config"]
+    branches: [main]
+    types: 
+      - completed
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
