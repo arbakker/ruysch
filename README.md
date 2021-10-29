@@ -1,5 +1,4 @@
 ![Build and Deploy](https://github.com/arbakker/pdok-services/workflows/Build%20and%20Deploy/badge.svg)
-![Version](https://img.shields.io/badge/version-0.1.0.alpha-yellow)
 
 # Ruysch
 
