@@ -1,8 +1,10 @@
   <template>
   <div id="comp-root" style="position: relative">
-    <loader-control v-if="!cswLoaded" :message="'Processing WMS Capabilities - ' + record.url"></loader-control>
+    <loader-control
+      v-if="!cswLoaded"
+      :message="'Processing WMS Capabilities - ' + record.url"
+    ></loader-control>
 
-    
     <div v-show="capVis && capXml !== ''">
       <div id="capbar">
         <button v-clipboard="() => capXml">
@@ -63,7 +65,7 @@
           <div class="mapControl">
             <layer-control
               v-if="layers.length > 0"
-              :layers="layers"  
+              :layers="layers"
               @layers-changed="layersChanged"
               @zoom-to="zoomTo"
             ></layer-control>
@@ -144,7 +146,7 @@ export default {
     ServiceInfo,
     LayerControl,
     FeatureInfoControl,
-    LoaderControl
+    LoaderControl,
   },
   computed: {
     ...mapFields({
@@ -163,7 +165,7 @@ export default {
         }
         let capWmsLyr = wmsLyr.get("wmsLyr");
         graphicUrl = `${graphicUrl}&SLD_VERSION=1.1.0`;
-        if (capWmsLyr.selectedStyle){
+        if (capWmsLyr.selectedStyle) {
           graphicUrl = `${graphicUrl}&STYLE=${capWmsLyr.selectedStyle.Name}`;
         }
         result.push({ url: graphicUrl, layerTitle: capWmsLyr.Title });
@@ -178,7 +180,7 @@ export default {
       return `${url}?request=GetCapabilities&service=WMS`;
     },
     styles() {
-      if (this.selectedLayer && 'Style' in this.selectedLayers) {
+      if (this.selectedLayer && "Style" in this.selectedLayers) {
         return this.selectedLayer.Style;
       }
       return [];
@@ -218,26 +220,30 @@ export default {
           let layers = [];
           layers = this.unpackLayers(parsedCap.Capability, layers);
           // filter out duplicate layers (seems bug in gebiedsindelingen wms)
-          layers = layers.filter((v,i,a)=>a.findIndex(t=>(t.Name === v.Name))===i)
+          layers = layers.filter(
+            (v, i, a) => a.findIndex((t) => t.Name === v.Name) === i
+          );
           // filter out duplicate styles, seems bug in cap parser
           layers.forEach((lyr) => {
-            if ('Style' in lyr){
+            if ("Style" in lyr) {
               lyr.Style = lyr.Style.filter(
                 (v, i, a) => a.findIndex((t) => t.Name === v.Name) === i
               );
             }
           });
-          this.layers = layers
+          this.layers = layers;
           this.selectedLayer = this.layers[0];
           let parentStyles = [];
           parentStyles = this.parentStyles(
             parsedCap.Capability,
             parentStyles
           ).flat();
-          this.layers.map(
-            (x) => {if ("Style" in x) x.Style = x.Style.filter((y) => !parentStyles.includes(y))}
-          );
-          this.selectedStyle = "Style" in this.layers[0]?  this.layers[0].Style[0]: undefined
+          this.layers.map((x) => {
+            if ("Style" in x)
+              x.Style = x.Style.filter((y) => !parentStyles.includes(y));
+          });
+          this.selectedStyle =
+            "Style" in this.layers[0] ? this.layers[0].Style[0] : undefined;
           this.cswLoaded = true;
         });
     });
@@ -274,8 +280,8 @@ export default {
       layers: [
         new TileLayer({
           source: new WMTS({
-            url: "https://geodata.nationaalgeoregister.nl/tiles/service/wmts",
-            layer: "brtachtergrondkaartgrijs",
+            url: "https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0",
+            layer: "grijs",
             matrixSet: projString,
             format: "image/png",
             projection: this.projection,
@@ -300,9 +306,9 @@ export default {
         return;
       }
       this.currentCoordinate = coordinate;
-      var viewResolution = /** @type {number} */ (this.olMap
-        .getView()
-        .getResolution());
+      var viewResolution = /** @type {number} */ (
+        this.olMap.getView().getResolution()
+      );
       var urls = this.olWmsLayers.map((x) =>
         x
           .getSource()
@@ -339,8 +345,8 @@ export default {
     }, 200);
   },
   watch: {
-    cswLoaded: function(){
-      if (this.cswLoaded){
+    cswLoaded: function () {
+      if (this.cswLoaded) {
         setTimeout(() => {
           this.olMap.updateSize();
         }, 200);
@@ -348,14 +354,14 @@ export default {
     },
     capVis: function () {
       if (this.capVis) {
-       setTimeout(() => {
+        setTimeout(() => {
           this.olMap.updateSize();
         }, 200);
       }
     },
   },
   methods: {
-     async getUrl(url) {
+    async getUrl(url) {
       let response = await fetch(url);
       if (response.ok) {
         // if HTTP-status is 200-299
@@ -393,23 +399,8 @@ export default {
     },
     getTileGrid(gridIdentifier) {
       const resolutions = [
-        3440.64,
-        1720.32,
-        860.16,
-        430.08,
-        215.04,
-        107.52,
-        53.76,
-        26.88,
-        13.44,
-        6.72,
-        3.36,
-        1.68,
-        0.84,
-        0.42,
-        0.21,
-        0.105,
-        0.05025,
+        3440.64, 1720.32, 860.16, 430.08, 215.04, 107.52, 53.76, 26.88, 13.44,
+        6.72, 3.36, 1.68, 0.84, 0.42, 0.21, 0.105, 0.05025,
       ];
       const matrixIds = new Array(15);
       if (gridIdentifier === "EPSG:28992") {
@@ -445,9 +436,9 @@ export default {
     },
     getLayers(layers) {
       return layers.map((lyr) => {
-        let params = { LAYERS: lyr.Name }
-        if (lyr.selectedStyle){
-          params.STYLES = lyr.selectedStyle.Name
+        let params = { LAYERS: lyr.Name };
+        if (lyr.selectedStyle) {
+          params.STYLES = lyr.selectedStyle.Name;
         }
         let wmsSource = new ImageWMS({
           url: this.record.url.split("?")[0],

@@ -1,5 +1,5 @@
   <template>
-   <div class="main">
+  <div class="main">
     <h2 v-if="!cswLoaded">Loading...</h2>
     <div v-show="capVis && capXml !== ''">
       <div id="capbar">
@@ -36,23 +36,19 @@
         <div id="meta" v-if="cswLoaded"></div>
       </div>
       <div id="sidebar">
-        <div  class="mapControl">
-        <h3
-          v-if="
-            serviceObject &&
-            serviceObject.title
-          "
-        >
-            {{ serviceObject.title }} {{ !serviceObject.title.includes("WFS")? '- WFS': ''}}
-        </h3>
-        <div>
-          <button @click="serviceInfoVis = true">
+        <div class="mapControl">
+          <h3 v-if="serviceObject && serviceObject.title">
+            {{ serviceObject.title }}
+            {{ !serviceObject.title.includes("WFS") ? "- WFS" : "" }}
+          </h3>
+          <div>
+            <button @click="serviceInfoVis = true">
               <font-awesome-icon title="Show service info" icon="info-circle" />
             </button>
             <button @click="capVis = true" title="Show capabilities document">
               <font-awesome-icon icon="file-code" />
             </button>
-        </div>
+          </div>
         </div>
         <div class="mapControl">
           <div class="row">
@@ -65,13 +61,17 @@
                 {{ ft.Title }}
               </option>
             </select>
-             <button @click="loadFeatures()" title="Load features on map">
+            <button @click="loadFeatures()" title="Load features on map">
               <font-awesome-icon icon="download" />
             </button>
           </div>
           <div>
             <label>maxFeatures</label
-            ><input title="Set maximum number of features to retrieve" type="number" v-model="maxFeatures" />
+            ><input
+              title="Set maximum number of features to retrieve"
+              type="number"
+              v-model="maxFeatures"
+            />
           </div>
         </div>
         <div class="mapControl">
@@ -94,7 +94,7 @@ import GeoJSON from "ol/format/GeoJSON";
 import VectorSource from "ol/source/Vector";
 import VectorLayer from "ol/layer/Vector";
 import Overlay from "ol/Overlay";
-import {FullScreen, defaults as defaultControls} from 'ol/control';
+import { FullScreen, defaults as defaultControls } from "ol/control";
 import "ol/ol.css";
 import proj4 from "proj4";
 import Projection from "ol/proj/Projection";
@@ -102,7 +102,6 @@ import { register } from "ol/proj/proj4.js";
 import WMTS from "ol/source/WMTS";
 import WMTSTileGrid from "ol/tilegrid/WMTS";
 import { getTopLeft, getWidth } from "ol/extent";
-
 
 // fa icons
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -131,15 +130,13 @@ import ServiceInfo from "./ServiceInfo.vue";
 // local imports
 import csw from "../lib/csw";
 import defaultStyles from "../lib/styles";
-import serviceInfo from '../lib/serviceInfo';
+import serviceInfo from "../lib/serviceInfo";
 
 // schema imports
 var WFS_2_0 = require("ogc-schemas").WFS_2_0;
 var OWS_1_1_0 = require("ogc-schemas").OWS_1_1_0;
 var Filter_2_0 = require("ogc-schemas").Filter_2_0;
 var XLink_1_0 = require("w3c-schemas").XLink_1_0;
-
-
 
 export default {
   name: "WFSMap",
@@ -184,7 +181,7 @@ export default {
     overlay: null,
     featureInfo: "",
     currentCoordinate: null,
-    serviceInfoVis: false
+    serviceInfoVis: false,
   }),
   mounted() {
     this.serviceId = this.$route.params.serviceId;
@@ -205,8 +202,10 @@ export default {
           ]);
           let unmarshaller = context.createUnmarshaller();
           let wfsObject = unmarshaller.unmarshalString(text);
-          this.serviceObject =  serviceInfo.getServiceInfoWFS(
-          {serviceIdentification: wfsObject.value.serviceIdentification, serviceProvider: wfsObject.value.serviceProvider});
+          this.serviceObject = serviceInfo.getServiceInfoWFS({
+            serviceIdentification: wfsObject.value.serviceIdentification,
+            serviceProvider: wfsObject.value.serviceProvider,
+          });
           this.features = [];
           wfsObject.value.featureTypeList.featureType.forEach((ft) => {
             let ftName = `${ft.name.prefix}:${ft.name.localPart}`;
@@ -253,8 +252,8 @@ export default {
       layers: [
         new TileLayer({
           source: new WMTS({
-            url: "https://geodata.nationaalgeoregister.nl/tiles/service/wmts",
-            layer: "brtachtergrondkaartgrijs",
+            url: "https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0",
+            layer: "grijs",
             matrixSet: projString,
             format: "image/png",
             projection: this.projection,
@@ -266,9 +265,9 @@ export default {
       ],
       view: new View({
         zoom: 3,
-        center: [156371.3422,461945.6757],
+        center: [156371.3422, 461945.6757],
         constrainResolution: true,
-        projection:  this.projection
+        projection: this.projection,
       }),
     });
     this.olMap.on("click", (evt) => {
@@ -315,25 +314,10 @@ export default {
   },
   watch: {},
   methods: {
-     getTileGrid(gridIdentifier) {
+    getTileGrid(gridIdentifier) {
       const resolutions = [
-        3440.64,
-        1720.32,
-        860.16,
-        430.08,
-        215.04,
-        107.52,
-        53.76,
-        26.88,
-        13.44,
-        6.72,
-        3.36,
-        1.68,
-        0.84,
-        0.42,
-        0.21,
-        0.105,
-        0.05025,
+        3440.64, 1720.32, 860.16, 430.08, 215.04, 107.52, 53.76, 26.88, 13.44,
+        6.72, 3.36, 1.68, 0.84, 0.42, 0.21, 0.105, 0.05025,
       ];
       const matrixIds = new Array(15);
       if (gridIdentifier === "EPSG:28992") {
@@ -397,11 +381,11 @@ export default {
         .then((data) => {
           var vectorSource = new VectorSource({
             features: new GeoJSON({
-              defaultDataProjection: 'EPSG:28992',
-              featureProjection: 'EPSG:28992'
+              defaultDataProjection: "EPSG:28992",
+              featureProjection: "EPSG:28992",
             }).readFeatures(data),
           });
-          
+
           if (this.vectorLayer) {
             this.olMap.removeLayer(this.vectorLayer);
           }

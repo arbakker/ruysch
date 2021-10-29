@@ -33,9 +33,14 @@
         <div class="mapControl">
           <h3 v-if="serviceObject && serviceObject.title">
             {{ serviceObject.title }}
-              {{ !serviceObject.title.includes("WMTS") && !serviceObject.title.includes("Web Map Tile Service") ? "- WMTS" : "" }}
+            {{
+              !serviceObject.title.includes("WMTS") &&
+              !serviceObject.title.includes("Web Map Tile Service")
+                ? "- WMTS"
+                : ""
+            }}
           </h3>
-           <div>
+          <div>
             <button @click="serviceInfoVis = true">
               <font-awesome-icon title="Show service info" icon="info-circle" />
             </button>
@@ -91,7 +96,6 @@ import "ol/ol.css";
 import proj4 from "proj4";
 import Projection from "ol/proj/Projection";
 import { register } from "ol/proj/proj4.js";
-
 
 // fa
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -165,7 +169,7 @@ export default {
       if (url.includes("?")) {
         url = url.split("?")[0];
       }
-      return url
+      return url;
     },
     maxScaleDenominator() {
       if (this.selectedLayer.MaxScaleDenominator !== undefined) {
@@ -206,7 +210,8 @@ export default {
         .then((response) => {
           return response.text();
         })
-        .then((text) => { // TODO: simplify with ol buildin WMTS Cap parser
+        .then((text) => {
+          // TODO: simplify with ol buildin WMTS Cap parser
           let context = new Jsonix.Context([
             XLink_1_0,
             Filter_2_0,
@@ -218,7 +223,7 @@ export default {
           ]);
           let unmarshaller = context.createUnmarshaller();
           let wmtsCap = unmarshaller.unmarshalString(text);
-          this.capXml = text
+          this.capXml = text;
           this.serviceObject = serviceInfo.getServiceInfoWMTS(wmtsCap);
           this.layers = wmtsCap.value.contents.datasetDescriptionSummary.map(
             (obj) => {
@@ -256,8 +261,8 @@ export default {
         new TileLayer({
           opacity: 0.4,
           source: new WMTS({
-            url: "https://geodata.nationaalgeoregister.nl/tiles/service/wmts",
-            layer: "brtachtergrondkaart",
+            url: "https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0",
+            layer: "grijs",
             matrixSet: projString,
             format: "image/png",
             projection: this.projection,
@@ -291,23 +296,8 @@ export default {
   methods: {
     getTileGrid(gridIdentifier) {
       const resolutions = [
-        3440.64,
-        1720.32,
-        860.16,
-        430.08,
-        215.04,
-        107.52,
-        53.76,
-        26.88,
-        13.44,
-        6.72,
-        3.36,
-        1.68,
-        0.84,
-        0.42,
-        0.21,
-        0.105,
-        0.05025,
+        3440.64, 1720.32, 860.16, 430.08, 215.04, 107.52, 53.76, 26.88, 13.44,
+        6.72, 3.36, 1.68, 0.84, 0.42, 0.21, 0.105, 0.05025,
       ];
       let matrixIds = new Array(15);
       if (gridIdentifier === "EPSG:28992") {
@@ -319,8 +309,8 @@ export default {
           matrixIds[i] = i;
         }
       }
-      if (gridIdentifier.startsWith('EPSG:28992')){
-        matrixIds = matrixIds.map(x=> `EPSG:28992:${x}`)
+      if (gridIdentifier.startsWith("EPSG:28992")) {
+        matrixIds = matrixIds.map((x) => `EPSG:28992:${x}`);
       }
 
       return new WMTSTileGrid({
@@ -358,7 +348,7 @@ export default {
     getLayer() {
       let tileMatrixId = "EPSG:28992";
       // use tilematrixset upto z16 if supported
-      if (this.selectedLayer.tileMatrixSets.includes("EPSG:28992:16")) { 
+      if (this.selectedLayer.tileMatrixSets.includes("EPSG:28992:16")) {
         tileMatrixId = "EPSG:28992:16";
       }
       return new TileLayer({
@@ -385,7 +375,6 @@ pre[class*="language-"] {
   margin: 0px;
   overflow: auto;
 }
-
 
 #meta {
   width: 100%;
