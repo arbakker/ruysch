@@ -1,5 +1,8 @@
 name: Build and Deploy
 on:
+  push:
+    branches:
+      - main
   workflow_run:
     workflows: ["Update Service Config"]
     branches: [main]
