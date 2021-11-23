@@ -90,7 +90,7 @@ import TileLayer from "ol/layer/Tile";
 import { FullScreen, defaults as defaultControls } from "ol/control";
 import WMTS from "ol/source/WMTS";
 import WMTSTileGrid from "ol/tilegrid/WMTS";
-import { getTopLeft, getWidth } from "ol/extent";
+import { getTopLeft } from "ol/extent";
 import "ol/ol.css";
 // import { fromLonLat } from 'ol/proj'
 import proj4 from "proj4";
@@ -196,10 +196,9 @@ export default {
     olWmsLayer: {},
     serviceObject: {},
     capXml: "",
+    tileMatrixSetId: "EPSG:28992",
     projection: null,
-    projectionExtent: null,
-    resolutions: null,
-    matrixIds: null,
+    wmtsCap: null,
   }),
   mounted() {
     this.serviceId = this.$route.params.serviceId;
@@ -222,14 +221,14 @@ export default {
             SMIL_2_0,
           ]);
           let unmarshaller = context.createUnmarshaller();
-          let wmtsCap = unmarshaller.unmarshalString(text);
+          this.wmtsCap = unmarshaller.unmarshalString(text);
           this.capXml = text;
-          this.serviceObject = serviceInfo.getServiceInfoWMTS(wmtsCap);
-          this.layers = wmtsCap.value.contents.datasetDescriptionSummary.map(
-            (obj) => {
+          this.serviceObject = serviceInfo.getServiceInfoWMTS(this.wmtsCap);
+          this.layers =
+            this.wmtsCap.value.contents.datasetDescriptionSummary.map((obj) => {
               return this.unpackWMTSLayer(obj);
-            }
-          );
+            });
+
           this.selectedLayer = this.layers[0];
         });
       this.cswLoaded = true;
@@ -243,17 +242,6 @@ export default {
       code: "EPSG:28992",
       extent: [-285401.92, 22598.08, 595401.92, 903401.92],
     });
-
-    this.projectionExtent = this.projection.getExtent();
-    var size = getWidth(this.projectionExtent) / 256;
-    this.resolutions = new Array(20);
-    this.matrixIds = new Array(20);
-    for (var z = 0; z < 20; ++z) {
-      // generate resolutions and matrixIds arrays for this WMTS
-      this.resolutions[z] = size / Math.pow(2, z);
-      this.matrixIds[z] = z;
-    }
-    let projString = "EPSG:28992";
     this.olMap = new Map({
       controls: defaultControls().extend([new FullScreen()]),
       target: this.$refs["map-root"],
@@ -263,10 +251,10 @@ export default {
           source: new WMTS({
             url: "https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0",
             layer: "grijs",
-            matrixSet: projString,
+            matrixSet: this.tileMatrixSetId,
             format: "image/png",
             projection: this.projection,
-            tileGrid: this.getTileGrid(projString),
+            tileGrid: this.getTileGridByZoomLevels(15),
             style: "default",
             wrapX: true,
           }),
@@ -294,30 +282,46 @@ export default {
     },
   },
   methods: {
-    getTileGrid(gridIdentifier) {
-      const resolutions = [
-        3440.64, 1720.32, 860.16, 430.08, 215.04, 107.52, 53.76, 26.88, 13.44,
-        6.72, 3.36, 1.68, 0.84, 0.42, 0.21, 0.105, 0.05025,
-      ];
-      let matrixIds = new Array(15);
-      if (gridIdentifier === "EPSG:28992") {
-        for (let i = 0; i < 15; ++i) {
-          matrixIds[i] = i;
-        }
-      } else if (gridIdentifier === "EPSG:28992:16") {
-        for (let i = 0; i < 17; ++i) {
-          matrixIds[i] = i;
-        }
+    getTileGridByZoomLevels(zoomlevels) {
+      let matrixIds = new Array(zoomlevels);
+      let resolutions = new Array(zoomlevels);
+      for (let i = 0; i < zoomlevels; ++i) {
+        matrixIds[i] = i;
+        resolutions[i] = 3440.64 * Math.pow(2, -i);
       }
-      if (gridIdentifier.startsWith("EPSG:28992")) {
-        matrixIds = matrixIds.map((x) => `EPSG:28992:${x}`);
-      }
-
+      matrixIds = matrixIds.map((x) => `EPSG:28992:${x}`);
       return new WMTSTileGrid({
-        origin: getTopLeft(this.projectionExtent),
+        origin: getTopLeft(this.projection.getExtent()),
         resolutions: resolutions,
         matrixIds: matrixIds,
       });
+    },
+    getTileGrid(tilesetidentifer) {
+      // retrieve layer object based on identifier
+      let lyr = this.layers.find((x) => x.identifier === tilesetidentifer);
+      if (lyr === null) {
+        // TODO: improve error handling
+        alert(
+          `ERROR: layer ${tilesetidentifer} not found in capabilities document`
+        );
+        return null;
+      }
+      // assuming a layer has one EPSG:28992 TMS definded, retrieve the appropriate TMS identifier
+      let tmsIdentifier = lyr.tileMatrixSets.find((x) =>
+        x.startsWith("EPSG:28992")
+      );
+      if (tmsIdentifier === null) {
+        alert(
+          `ERROR: TileMatrixSet  EPSG:28992 not found in capabilities document`
+        );
+        return null;
+      }
+      // retrieve TMS object by tmsIdentifier, en check nr of zoomlevels
+      let rdTMS = this.wmtsCap.value.contents.tileMatrixSet.find(
+        (x) => x.identifier.value === tmsIdentifier
+      );
+      let zoomlevels = rdTMS.tileMatrix.length;
+      return this.getTileGridByZoomLevels(zoomlevels);
     },
 
     unpackWMTSLayer(obj) {
@@ -341,25 +345,28 @@ export default {
       if (this.olWmsLayer) {
         this.olMap.removeLayer(this.olWmsLayer);
       }
-      this.olWmsLayer = this.getLayer();
+      let newLayer = this.getLayer();
+      if (newLayer === null) {
+        return;
+      }
+      this.olWmsLayer = newLayer;
       this.olMap.addLayer(this.olWmsLayer);
       this.olMap.render();
     },
     getLayer() {
-      let tileMatrixId = "EPSG:28992";
-      // use tilematrixset upto z16 if supported
-      if (this.selectedLayer.tileMatrixSets.includes("EPSG:28992:16")) {
-        tileMatrixId = "EPSG:28992:16";
+      let tileGrid = this.getTileGrid(this.selectedLayer.identifier);
+      if (tileGrid === null) {
+        return null;
       }
       return new TileLayer({
         opacity: 1,
         source: new WMTS({
           url: this.getBaseUrl,
           layer: this.selectedLayer.identifier,
-          matrixSet: tileMatrixId,
+          matrixSet: "EPSG:28992",
           format: "image/png",
           projection: this.projection,
-          tileGrid: this.getTileGrid(tileMatrixId),
+          tileGrid: tileGrid,
           style: "default",
           wrapX: true,
         }),
