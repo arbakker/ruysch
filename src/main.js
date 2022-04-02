@@ -14,11 +14,11 @@ Vue.config.productionTip = false
 
 // 1. Define route components.
 // These can be imported from other files
-import Search from './components/Search.vue'
+import SearchPage from './components/SearchPage.vue'
 import WMSMap from './components/WMSMap.vue'
 import WMTSMap from './components/WMTSMap.vue'
 import WFSMap from './components/WFSMap.vue'
-import Atom from './components/Atom.vue'
+import AtomPage from './components/AtomPage.vue'
 
 
 
@@ -28,12 +28,12 @@ import Atom from './components/Atom.vue'
 // `Vue.extend()`, or just a component options object.
 // We'll talk about nested routes later.
 const routes = [
-  { path: '/home/:endpoint?', component: Search },
+  { path: '/home/:endpoint?', component: SearchPage },
   { path: '/wms-service/:serviceId', component: WMSMap, name: 'OGC:WMS', },
   { path: '/wfs-service/:serviceId', component: WFSMap, name: 'OGC:WFS', },
   { path: '/wmts-service/:serviceId', component: WMTSMap, name: 'OGC:WMTS', },
 
-  { path: '/atom-service/:serviceId/:dataFeedId?', component: Atom, name: 'INSPIRE Atom', },
+  { path: '/atom-service/:serviceId/:dataFeedId?', component: AtomPage, name: 'INSPIRE Atom', },
   { path: '/', redirect: '/home' },
   { path: '*', redirect: 'home'}
 ]

@@ -43,7 +43,7 @@ import {
 library.add([faTimes, faClipboard, faFileCode, faDownload]);
 
 export default {
-  name: "Atom",
+  name: "AtomPage",
   components: {
     AtomFeed,
     LoaderControl

@@ -80,7 +80,7 @@ import LoaderControl from "./LoaderControl.vue";
 import { serviceTypes, cachedConfig } from "../config.js";
 
 export default {
-  name: "Search",
+  name: "SearchPage",
   components: {
     ListItem,
     LoaderControl,
